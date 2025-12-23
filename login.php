@@ -1,7 +1,15 @@
- <?php 
+<?php
  
+if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 
- 
+date_default_timezone_set("Asia/Colombo");
+
+// -------------------------
+// Load Database & Settings
+// -------------------------
+include 'db.php';
+
+
     function sendSMS($to, $message) {
     // Global credentials
     $user_id   = 290;
@@ -42,383 +50,281 @@
 
     return ['success' => true, 'response' => $response];
 }
+ 
 
-
-?>
- <!DOCTYPE html>
- <html lang="en">
-
- <head>
-     <title>App Login</title>
-     <!-- Meta -->
-     <meta charset="utf-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
-     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-     <meta name="description" content="codedthemes">
-     <meta name="keywords" content=",  creative app">
-     <meta name="author" content="codedthemes">
-
-     <!-- Favicon icon -->
-     <link rel="shortcut icon" href="assets/images/favicon.png" type="image/x-icon">
-     <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
-     <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,500,700" rel="stylesheet">
-     <link href="assets/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-     <link rel="stylesheet" type="text/css" href="assets/icon/icofont/css/icofont.css">
-     <link rel="stylesheet" type="text/css" href="assets/plugins/bootstrap/css/bootstrap.min.css">
-     <link rel="stylesheet" type="text/css" href="assets/plugins/Waves/waves.min.css">
-     <link rel="stylesheet" type="text/css" href="assets/css/main.css">
-     <link rel="stylesheet" type="text/css" href="assets/css/responsive.css">
-     <link rel="stylesheet" type="text/css" href="assets/css/color/color-1.min.css" id="color" />
-     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
- </head>
-
- <body>
-     <section class="login p-fixed d-flex text-center bg-primary common-img-bg">
-         <!-- Container-fluid starts -->
-         <div class="container-fluid">
-             <div class="row">
-
-                 <?php if(isset($_REQUEST['multiple_sign_in'])){
-    
-    echo '<script>
-    Swal.fire({
-  title: "Logged Out Due to Multiple Sign-Ins",
-  text: "You are being logged out because your account was accessed from another device. If this wasn\'t  you, please change your password immediately to protect your account",
-  icon: "question"
-});
-</script>';
-}?>
-
-
-                 <div class="col-sm-12">
-                     <div class="login-card card-block">
-
-                         <form class="md-float-material" action="" method="POST" autocomplete="on">
-                             <div class="text-center">
-                                 <img src="img/logo_123.png" alt="logo" width='150px'>
-                             </div>
-                             <h3 class="text-center txt-success">
-
-                                 <!--Sign In to your account-->
-
-                                 <?php
-					 
-								
-								
-							 date_default_timezone_set("Asia/Colombo");
-								// session_destroy(); 
-								ini_set('session.gc_maxlifetime', 36000);
-								ini_set('session.gc_probability', 1);
-								ini_set('session.gc_divisor', 100);
-								session_start();
-
-								include 'db.php';
-								function getSettings($con) {
-								$result = mysqli_query($con, "SELECT * FROM letter_head WHERE id = 1");
-								return mysqli_fetch_assoc($result);
-									} 
-									$settings = getSettings($con);
-									$entity =  $settings['company_name'];
-									$vat_no = $settings['vat_no'];
-                                    $vat_client = !empty($vat_no) ? 1 : 0;
-									echo  $entity;
-
-
-
-								if (isset($_POST['LoginSubmit'])) {
-								    
-								    
-								    					$ip = $_SERVER['REMOTE_ADDR'];
-                                                        $limit_time = date("Y-m-d H:i:s", strtotime("-10 minutes"));
-                                                        
-                                                        // Count attempts in last 10 minutes
-                                                        $sql = "SELECT COUNT(*) as attempt_count FROM login_attempts WHERE ip_address = '$ip' AND attempt_time > '$limit_time' AND try_for='login'";
-                                                        $result = mysqli_query($con, $sql);
-                                                        $row = mysqli_fetch_assoc($result);
-                                                        
-                                                        if ($row['attempt_count'] > 5) {
-                                                            die("<h4 style='color:red;'>Too many attempts. Try again later.</h4>");
-                                                        }
-                                                        
-									 
-									$username = stripslashes($_POST['username']);  
-									$username = mysqli_real_escape_string($con, $username);  
-									$password = stripslashes($_POST['password']);
-									$password = mysqli_real_escape_string($con, "893121129V".$password);
-									  $password =md5($password);
-
-									  $query = "SELECT * FROM user_license WHERE username='$username' AND password ='$password' and account_status = '1'";
-									$result = mysqli_query($con, $query) or die(mysqli_error());
-									$rows = mysqli_num_rows($result);
-									$row = mysqli_fetch_assoc($result);
-									if ($rows == 1) {
-										$date = date('Y-m-d h:i', time());
-										$token = md5(round(microtime(true)) / 0.2);
-										$update = "UPDATE user_license SET `last_log_in`= '" . $date . "',`last_token`= '" . $token . "'  WHERE username = '" . $username . "'";
-						                mysqli_query($con, $update); 
-						               
-						               
-						                
-										
-										$_SESSION['username'] = $username;
-										$_SESSION['user_id'] = $row['usr_id'];
-										$_SESSION['customer'] = $row['customer'];
-										$_SESSION['i_name'] = $row['i_name'];
-										$_SESSION['app_name'] = "e-Shed";
-										$_SESSION['company_name'] = $entity;
-										$_SESSION['last_token'] = $token;
-										$_SESSION['company'] =  $entity;
-										$_SESSION['vat_reg_no'] =  $settings['VAT'];
-										$_SESSION['vat_invpice_serial'] =  $settings['invoice_prefix'];
-										$_SESSION['vat_applicable'] = $vat_client;
-										  //$_SESSION['company'] = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-										$_SESSION['address1'] = "Eastern Province";
-										$cookie_name = "ACC" . $row['usr_id'];
-										$user_id = $row['usr_id'];
-									   $encryption = $_COOKIE[$cookie_name];
-										$ciphering = "AES-128-CTR";
-										$iv_length = openssl_cipher_iv_length($ciphering);
-										$options = 0;
-										$decryption_iv = '1234567891011121';
-										$decryption_key = "kiritharan100@gmail.com";
-										$decryption = openssl_decrypt(
-											$encryption,
-											$ciphering,
-											$decryption_key,
-											$options,
-											$decryption_iv
-										);
-										 $token = $decryption;
-										 $query = "SELECT * from user_device where pf_no='" . $username . "' and token='$token'";
-										$result = mysqli_query($con, $query) or die(mysqli_error());
-										$count = mysqli_num_rows($result);
-										
-										 $ip= $_SERVER['REMOTE_ADDR']; 
-										  $update123 = "INSERT INTO `user_log` (`usr_id`, `module`, `action`, `detail`) 
-                                                     VALUES ('$user_id', '$0', 'Login', 'Login from $ip')";
-						                mysqli_query($con, $update123);
-										
-										
-										
-									    	$sel_query="SELECT client_registration.md5_client, client_registration.client_name from client_registration 
-                                             INNER JOIN
-                                            user_location ON user_location.location_id  = client_registration.c_id AND user_location.usr_id ='$user_id' 
-                                            where client_registration.user_license='1'";
-                                              $result = mysqli_query($con,$sel_query);
-                                            $rowcount=mysqli_num_rows($result);
-                                            $row123 = mysqli_fetch_assoc($result);  
-                                            $last_client = $row123['md5_client'];
-                                            if($rowcount == 1){
-                                                 $selected_client = $last_client;
-                                             setcookie("client_cook",  $selected_client, time() + (86400 * 180), "/"); // 86400 = 1 day
-                                            }
-                                            
-                                 
-                    
-
-										if (!isset($_COOKIE[$cookie_name]) || $count == 0) {
-											$token = substr(round(microtime(true)*12345/325),5);
-											$update="UPDATE user_license SET dr_token = '$token' WHERE  username= '$username'";
-												mysqli_query($con, $update) or die(mysqli_error());
-												 
-
-                                                                                                     
-																	if($settings['admin_device_approval'] == 1){
-																		$to = $settings['gm_mobile'];
-																		$user = $row['i_name'];
-																		$message = "User $user is accessing eShed from a new device. Share this token if the location is valid: $token";
-																	}else{
-																		$to = $username;
-																		$message = 'Your device registration token for eShed:' . $token;
-																	}
-
-																	$xxxx = sendSMS($to, $message);
-
-																	if ($xxxx['success']) {
-																		echo "SMS Sent  ";
-																	} else {
-																		echo "SMS Error: " . $result['error'];
-																	}
-
-
-   echo "<script>window.location.href = 'device_registration.php?ip=$ip';</script>";
-   exit;
-} else {
-    echo "<script>window.location.href = 'index.php';</script>";
-    exit;
+function getSettings($con) {
+    $result = mysqli_query($con, "SELECT * FROM letter_head WHERE id = 1");
+    return mysqli_fetch_assoc($result);
 }
-                                                                                                     
+
+// Instantiate reusable SMS helper (Dialog API based)
  
-								// 			header("Location: device_registration.php?ip=$ip");
-								// 		} else {
-								// 			header("Location: index.php");
-								// 			exit;
-								// 		}
 
- 
-									}else{
-									    
-									    
+// -------------------------
+// Handle Login Submission
+// -------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['LoginSubmit'])) {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $limit_time = date('Y-m-d H:i:s', strtotime('-10 minutes'));
 
-                                                        
-                                                        // Log attempt
-                                                        mysqli_query($con, "INSERT INTO login_attempts (ip_address, attempt_time , try_for) VALUES ('$ip', NOW(),'login')");
-									    
-									    
-									    
-									    
-										echo "<script>
-										 alert('Username or Password is incorrect');
-										</script>";
-									}
+    // Brute force protection (prepared)
+    $attempt_stmt = $con->prepare("SELECT COUNT(*) AS attempt_count FROM login_attempts WHERE ip_address = ? AND attempt_time > ? AND try_for='login'");
+    $attempt_stmt->bind_param('ss', $ip, $limit_time);
+    $attempt_stmt->execute();
+    $attempt_res = $attempt_stmt->get_result();
+    $attempt_row = $attempt_res->fetch_assoc();
+    $attempt_stmt->close();
+
+    if ($attempt_row && $attempt_row['attempt_count'] > 5) {
+        echo "<h4 style='color:red;'>Too many attempts. Try again later.</h4>";
+        exit;
+    }
+
+    $raw_username = $_POST['username'] ?? '';
+    $raw_password = $_POST['password'] ?? '';
+
+    if ($raw_username === '' || $raw_password === '') {
+        echo "<script>alert('Please enter username and password');</script>";
+    } else {
+        $user_stmt = $con->prepare("SELECT usr_id, username, password, customer, i_name, role_id, account_status FROM user_license WHERE username = ? AND account_status = '1' LIMIT 1");
+        $user_stmt->bind_param('s', $raw_username);
+        $user_stmt->execute();
+        $user_res = $user_stmt->get_result();
+        $row = $user_res->fetch_assoc();
+        $user_stmt->close();
+
+        $login_ok = false;
+        if ($row) {
+            $stored = $row['password'];
+            if (preg_match('/^[a-f0-9]{32}$/i', $stored)) {
+                $legacy_hash = md5('893121129V' . $raw_password);
+                if (hash_equals($stored, $legacy_hash)) {
+                    $new_hash = password_hash($raw_password, PASSWORD_DEFAULT);
+                    $upd_stmt = $con->prepare("UPDATE user_license SET password = ? WHERE usr_id = ?");
+                    $upd_stmt->bind_param('si', $new_hash, $row['usr_id']);
+                    $upd_stmt->execute();
+                    $upd_stmt->close();
+                    $login_ok = true;
+                }
+            } else {
+                if (password_verify($raw_password, $stored)) {
+                    if (password_needs_rehash($stored, PASSWORD_DEFAULT)) {
+                        $rehash = password_hash($raw_password, PASSWORD_DEFAULT);
+                        $reh_stmt = $con->prepare("UPDATE user_license SET password = ? WHERE usr_id = ?");
+                        $reh_stmt->bind_param('si', $rehash, $row['usr_id']);
+                        $reh_stmt->execute();
+                        $reh_stmt->close();
+                    }
+                    $login_ok = true;
+                }
+            }
+        }
+
+        if ($login_ok) {
+            session_regenerate_id(true);
+            $settings = getSettings($con);
+            $entity = $settings['company_name'];
+            $vat_no = $settings['vat_no'];
+            $vat_client = !empty($vat_no) ? 1 : 0;
+            $token = bin2hex(random_bytes(32));
+            $user_id = (int)$row['usr_id'];
+            $token_stmt = $con->prepare("UPDATE user_license SET last_log_in = NOW(), last_token = ? WHERE usr_id = ?");
+            $token_stmt->bind_param('si', $token, $user_id);
+            $token_stmt->execute();
+            $token_stmt->close();
+
+            $_SESSION['username'] = $row['username'];
+            $_SESSION['user_id'] = $user_id;
+            $_SESSION['customer'] = $row['customer'];
+            $_SESSION['i_name'] = $row['i_name'];
+            $_SESSION['app_name'] = 'IRCMS';
+            $_SESSION['company_name'] = $entity;
+            $_SESSION['last_token'] = $token;
+            $_SESSION['company'] = $entity;
+            $_SESSION['vat_reg_no'] = $settings['VAT'];
+            $_SESSION['vat_invpice_serial'] = $settings['invoice_prefix'];
+            $_SESSION['vat_applicable'] = $vat_client;
+            $_SESSION['address1'] = 'Eastern Province';
+
+            $role_id = (int)$row['role_id'];
+            
+            $_SESSION['permissions'] = 1;
+
+            $log_stmt = $con->prepare("INSERT INTO user_log (usr_id, module, action, detail) VALUES (?, '0', 'Login', ?)");
+            $detail = 'Login from ' . $ip;
+            $log_stmt->bind_param('is', $user_id, $detail);
+            $log_stmt->execute();
+            $log_stmt->close();
+
+            $cookie_name = 'RBH_DR' . $user_id;
+            $encrypted_token = $_COOKIE[$cookie_name] ?? null;
+            $decryption = null;
+            if ($encrypted_token) {
+                $decryption = openssl_decrypt($encrypted_token, 'AES-128-CTR', 'kiritharan100@gmail.com', 0, '1234567891011121');
+            }
+            $device_stmt = $con->prepare("SELECT 1 FROM user_device WHERE pf_no = ? AND token = ? LIMIT 1");
+            $device_stmt->bind_param('ss', $row['username'], $decryption);
+            $device_stmt->execute();
+            $device_res = $device_stmt->get_result();
+            $device_valid = $device_res && $device_res->num_rows === 1;
+            $device_stmt->close();
+
+            if (!$encrypted_token || !$device_valid) {
+                $new_token = (string)random_int(1000, 9999);
+                $dr_stmt = $con->prepare("UPDATE user_license SET dr_token = ? WHERE usr_id = ?");
+                $dr_stmt->bind_param('si', $new_token, $user_id);
+                $dr_stmt->execute();
+                $dr_stmt->close();
+                $sms_to = $settings['admin_device_approval'] ? $settings['gm_mobile'] : $row['username'];
+                $sms_msg = $settings['admin_device_approval']
+                    ? 'User ' . $row['i_name'] . ' is accessing from a new device. Share this token if valid: ' . $new_token
+                    : 'Your device registration token for for the System (RBH): ' . $new_token;
+                // Use new gateway (sms_type DEVICE or DEVICE_ADMIN)
+                $sms_type = "Device Registration";
+
+                        $xxxx = sendSMS($sms_to, $sms_msg);
+
+                        if ($xxxx['success']) {
+                            echo "SMS Sent  ";
+                        } else {
+                            echo "SMS Error: " . $result['error'];
+                        }
+                // $smsHelper->sendSMS(0, $sms_to, $sms_msg, $sms_type);
+                echo "<script>window.location.href = 'device_registration.php?ip=$ip';</script>";
+                exit;
+            }
+
+            $client_sql = "SELECT client_registration.md5_client FROM client_registration 
+                            INNER JOIN user_location ON user_location.location_id = client_registration.c_id
+                            WHERE user_location.usr_id = ? AND client_registration.user_license = '1'";
+            $client_stmt = $con->prepare($client_sql);
+            $client_stmt->bind_param('i', $user_id);
+            $client_stmt->execute();
+            $client_res = $client_stmt->get_result();
+            if ($client_res && $client_res->num_rows === 1) {
+                $last_client = $client_res->fetch_assoc()['md5_client'];
+                setcookie('client_cook', $last_client, time() + (86400 * 180), '/');
+            }
+            $client_stmt->close();
+            echo "<script>window.location.href = 'index.php';</script>";
+            exit;
+        } else {
+            $fail_stmt = $con->prepare("INSERT INTO login_attempts (ip_address, attempt_time, try_for) VALUES (?, NOW(), 'login')");
+            $fail_stmt->bind_param('s', $ip);
+            $fail_stmt->execute();
+            $fail_stmt->close();
+            usleep(random_int(50000,150000));
+            echo "<script>alert('Username or Password is incorrect');</script>";
+        }
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(to right, #00695c, #26a69a);
+        min-height: 100vh;
+    }
+
+    .login-wrapper {
+        max-width: 400px;
+        margin: auto;
+    }
+
+    .card {
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .form-control:focus {
+        box-shadow: none;
+        border-color: #26a69a;
+    }
+
+    .login-logo img {
+        max-width: 150px;
+    }
+
+    .btn-success {
+        background-color: #26a69a;
+        border: none;
+    }
+
+    .btn-success:hover {
+        background-color: #1f8f82;
+    }
+    </style>
+</head>
+
+<body class="d-flex align-items-center justify-content-center">
+
+    <div class="login-wrapper w-100 px-3">
+        <div class="card p-4">
+            <div class="text-center login-logo mb-3">
+                <img src="img/logo1.png" alt="Logo" style='height:80px;'>
+            </div>
 
 
-								}
-								?>
+            <h5 class="text-center text-success mb-3">
 
+                <?php echo isset($entity) ? htmlspecialchars($entity) : 'Raja Bake House<br> Trincomalee'; ?>
+            </h5>
+            <form method="POST" action="">
+                <div class="mb-3">
+                    <label for="username" class="form-label">User Name</label>
+                    <input type="text" class="form-control" name="username" id="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" name="password" id="password" required>
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" id="showPassword" onclick="togglePassword()">
+                        <label class="form-check-label " for="showPassword">Show Password</label>
+                    </div>
+                </div>
+                <button type="submit" name="LoginSubmit" class="btn btn-success w-100">Login</button>
+            </form>
+            <div class="card-footer text-center mt-3 border-0 bg-transparent">
+                <a href="reset_request.php" class="btn btn-outline-primary btn-sm me-2">Forgot Password?</a>
+                <a href="setup_password.php" class="btn btn-outline-primary btn-sm">New User?</a>
+            </div>
+        </div>
+        <div class="text-center text-white mt-3">
+            <small>
+                Solution by
+                <a href="https://dtecstudio.com/" target="_blank" class="text-white text-decoration-underline">
+                    <img src="https://dtecstudio.com/img/logo.png" width="80" alt="DtecStudio">
+                </a>
+            </small>
+        </div>
+    </div>
 
-                             </h3>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Show Password Toggle Script -->
+    <script>
+    function togglePassword() {
+        const pwd = document.getElementById("password");
+        pwd.type = pwd.type === "password" ? "text" : "password";
+    }
+    </script>
+    </script>
+</body>
 
-                             <div class="row">
-
-                                 <div class="col-md-12">
-                                     <div class="md-input-wrapper">
-                                         <input type="text" name='username' id="username"
-                                             class="md-form-control md-valid" required="required" />
-                                         <label>User Name</label>
-                                     </div>
-                                 </div>
-                                 <div class="col-md-12">
-                                     <div class="md-input-wrapper">
-                                         <input type="password" class="md-form-control md-valid" id="password"
-                                             name='password' required="required" />
-                                         <label>Password</label>
-                                     </div>
-                                 </div>
-                                 <div class="col-sm-6 col-xs-12">
-                                     <!-- <div class="rkmd-checkbox checkbox-rotate checkbox-ripple m-b-25">
-										<label class="input-checkbox checkbox-primary">
-											<input type="checkbox" id="checkbox">
-											<span class="checkbox"></span>
-										</label>
-										<div class="captions">Remember Me</div>
-
-									</div> -->
-                                 </div>
-
-                             </div>
-                             <div class="row">
-                                 <div class="col-xs-10 offset-xs-1">
-                                     <!--<button type="submit" class="btn btn-success btn-md btn-block waves-effect text-center m-b-20" name='LoginSubmit'>LOGIN</button>-->
-                                     <button type="submit"
-                                         class="btn btn-success btn-md btn-block waves-effect text-center m-b-20"
-                                         name="LoginSubmit"
-                                         onclick="setTimeout(() => { this.disabled = true; this.innerText = 'Processing...'; }, 1)">
-                                         LOGIN
-                                     </button>
-                                 </div>
-
-
-                             </div>
-                         </form>
-                         <div class="card-footer">
-                             <div class="text-center mt-3">
-                                 <a href="reset_request.php" class="btn btn-outline-primary btn-sm">Forgot Password?</a>
-                                 <a href="setup_password.php" class="btn btn-outline-primary btn-sm">New User?</a>
-                             </div>
-                             <div class="col-sm-6 col-xs-12 forgot-phone text-right">
-
-
-                             </div>
-                             <div class="col-sm-12 col-xs-12 text-center">
-
-
-                                 <div align='center'>
-                                     <a href="https://dtecstudio.com/" target='_blank' class="text-right f-w-600">
-                                         Solution by : <img src='https://dtecstudio.com/img/logo.png' width='80px;'>
-                                     </a>
-                                     <!-- <br> <a href='https://chromewebstore.google.com/detail/google-input-tools/mclkkofklkfljcocdinagocijmpgbhab' target='_blank'><img src='https://lh3.googleusercontent.com/KxYKwMcAzhn_DBMVIb0mtvIOsAME2d8-csv5d_vnKYX6PL3D6BGbVy3hH68ky8nM9yTDGAPl6B77pA7tpu4_jeUkXw=s60' width='30px'>Google Input Tools</a> -->
-                                 </div>
-                                 <!-- <a href='mobile/'> 	 <button class='btn btn-success' type='button' > Staff Login </button></a> -->
-                             </div>
-                         </div>
-                         <!-- </div> -->
-
-                         <!-- end of form -->
-                     </div>
-                     <!-- end of login-card -->
-                 </div>
-                 <!-- end of col-sm-12 -->
-             </div>
-             <!-- end of row -->
-         </div>
-         <!-- end of container-fluid -->
-     </section>
-
-     <!-- Warning Section Starts -->
-     <!-- Older IE warning message -->
-     <!--[if lt IE 9]>
-<div class="ie-warning">
-	<h1>Warning!!</h1>
-	<p>You are using an outdated version of Internet Explorer, please upgrade <br/>to any of the following web browsers to access this website.</p>
-	<div class="iew-container">
-		<ul class="iew-download">
-			<li>
-				<a href="http://www.google.com/chrome/">
-					<img src="assets/images/browser/chrome.png" alt="Chrome">
-					<div>Chrome</div>
-				</a>
-			</li>
-			<li>
-				<a href="https://www.mozilla.org/en-US/firefox/new/">
-					<img src="assets/images/browser/firefox.png" alt="Firefox">
-					<div>Firefox</div>
-				</a>
-			</li>
-			<li>
-				<a href="http://www.opera.com">
-					<img src="assets/images/browser/opera.png" alt="Opera">
-					<div>Opera</div>
-				</a>
-			</li>
-			<li>
-				<a href="https://www.apple.com/safari/">
-					<img src="assets/images/browser/safari.png" alt="Safari">
-					<div>Safari</div>
-				</a>
-			</li>
-			<li>
-				<a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">
-					<img src="assets/images/browser/ie.png" alt="">
-					<div>IE (9 & above)</div>
-				</a>
-			</li>
-		</ul>
-	</div>
-	<p>Sorry for the inconvenience!</p>
-</div>
-<![endif]-->
-     <!-- Warning Section Ends -->
-     <!-- Required Jqurey -->
-
-
-
-     <script src="assets/plugins/jquery/dist/jquery.min.js"></script>
-     <script src="assets/plugins/jquery-ui/jquery-ui.min.js"></script>
-     <script src="assets/plugins/tether/dist/js/tether.min.js"></script>
-
-     <!-- Required Fremwork -->
-     <script src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
-
-     <!-- waves effects.js -->
-     <script src="assets/plugins/waves/waves.min.js"></script>
-     <!-- Custom js -->
-     <script type="text/javascript" src="assets/pages/elements.js"></script>
-     <script src="assets/plugins/notification/js/bootstrap-growl.min.js"></script>
-     <script src="assets/pages/notification.js"></script>
-
-
- </body>
-
- </html>
+</html>

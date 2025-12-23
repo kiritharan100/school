@@ -46,12 +46,15 @@
                 <div class="col-xs-12">
                     <div class="login-card card-block">
                         <form class="md-float-material" action="" method="POST">
+
                             <div class="text-center">
-                                <img src="assets/images/logo-black.png" alt="logo">
+                                <img src="img/gov.png" alt="logo" width='40px;'>
+                                <!-- <h2 style='color:#000;' >IRMIS</h2> -->
+                                <font style='color:#000;'>Raja Bake House<br>
+                                </font>
                             </div>
-                            <h3 class="text-primary text-center m-b-25">Device Registration
-                                <?php
-							session_start(); 
+                            <?php
+                            	if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
 							if(empty($_SESSION['username'])) {  
 								session_unset();     
 								session_destroy(); 
@@ -86,7 +89,7 @@
 										$encryption_iv
 									);
 
-									$cookie_name = "ACC" . $row['usr_id'];
+									$cookie_name = "RBH_DR" . $row['usr_id'];
 									$cookie_value = $encryption;
 									 
 									setcookie($cookie_name, $cookie_value, time() + (86400 * 665), "/");
@@ -96,15 +99,15 @@
 									header("refresh:1;url=index.php");
 								} else {
 
-									$cookie_name = "DR" . $username;
+									$cookie_name = "RBH_DR" . $row['usr_id'];
 									$cookie_value = $_COOKIE[$cookie_name] + 1;
 									setcookie($cookie_name, $cookie_value, time() + (86400 * 650), "/");
 									if ($cookie_value < 3) {
 										header("Location: login.php?device");
 									} else {
-										$update = "update user_license set account_status ='10' where username='" . $username . "'";
-										mysqli_query($con, $update) or die(mysqli_error());
-										header("Location: login.php?acc=10");
+										// $update = "update user_license set account_status ='10' where username='" . $username . "'";
+										// mysqli_query($con, $update) or die(mysqli_error());
+										header("Location: login.php?acc=failed_device");
 									}
 								}
 							}
@@ -114,7 +117,7 @@
                                 <div class="md-input-wrapper">
                                     <input type="number" name='token_input' class="md-form-control" style="width:200px;"
                                         required />
-                                    <label>Please enter the token that was sent to your Admin.</label>
+                                    <label>Please enter the token that was sent to your Mobile.</label>
                                 </div>
                             </div>
                             <div class="btn-forgot">

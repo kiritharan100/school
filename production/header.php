@@ -267,63 +267,22 @@ $company_id = $_SESSION['customer'];
                             <i class="fa fa-home"></i><span> Dashboard</span>
                         </a>
                     </li>
+
+                    <li class="<?php $url='manage_material.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa-solid fa-user"></i><span> Material</span>
+                        </a>
+                    </li>
+
+
+
                     <li class="<?php $url='manage_user.php'; if($url == $current_url){echo "active";}?> treeview">
                         <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
                             <i class="fa-solid fa-user"></i><span> Manage Users</span>
                         </a>
                     </li>
 
-                    <!-- <li class="<?php $url='land_usage_purposes.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-tags"></i><span> Land Usage Purposes</span>
-                        </a>
-                    </li> -->
 
-                    <!-- <li class="<?php $url='penalty_rate_settings.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-percent"></i><span> Penalty Rate Settings</span>
-                        </a>
-                    </li> -->
-
-
-                    <li class="<?php $url='lease_master.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-file"></i><span> Lease Master</span>
-                        </a>
-                    </li>
-
-
-
-                    <li class="<?php $url='client_list.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-home"></i><span> Manage DS Division</span>
-                        </a>
-                    </li>
-
-
-
-                    <li class="<?php $url='gn_division_list.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-list"></i><span> Manage GN Division</span>
-                        </a>
-                    </li>
-
-
-
-
-                    <li class="<?php $url='sms_templates.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-envelope"></i><span> SMS Templates</span>
-                        </a>
-                    </li>
-
-
-
-                    <li class="<?php $url='reports.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-file"></i><span> Reports</span>
-                        </a>
-                    </li>
 
                     <li class="<?php $url='report_user_log.php'; if($url == $current_url){echo "active";}?> treeview">
                         <a class="waves-effect waves-dark" href="<?php echo $url; ?>">

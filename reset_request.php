@@ -48,96 +48,70 @@
 					<div class="login-card card-block">
 					 
 							<div class="text-center">
-								 	<img src="assets/images/logo-black.png" alt="logo">
+								 	<img src="img/gov.png" alt="logo" width='40px;' >
+									<h2 style='color:#000;' >IRMIS</h2>
+									<font style='color:#000;'>Department of Land Administration <br>
+ 									Eastern Province</font>
 							</div>
 		 
 							<h3 class="text-primary text-center m-b-25">Password Reset Request </h3>
-							<?php 
-							 function sendSMS($to, $message) {
-    // Global credentials
-    $user_id   = 290;
-    $api_key   = 'a52147cf-ec5b-451d-b4c0-058c030a6d21';
-    $sender_id = 'DtecStudio';
-    $url       = "https://smslenz.lk/api/send-sms";
+							<?php
+						 
+							require 'db.php';
+							require_once __DIR__ . '/sms_helper.php'; // New SMS gateway helper
+							$smsHelper = new SMS_Helper();
 
-    $data = [
-        'user_id'   => $user_id,
-        'api_key'   => $api_key,
-        'sender_id' => $sender_id,
-        'contact'   => $to,
-        'message'   => $message,
-    ];
+							$settings_stmt = $con->prepare("SELECT system_email, company_name, domain FROM letter_head LIMIT 1");
+							$settings_stmt->execute();
+							$settings_res = $settings_stmt->get_result();
+							$rowx = $settings_res->fetch_assoc();
+							$settings_stmt->close();
+							$company_name = $rowx['company_name'] ?? '';
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-    $response = curl_exec($ch);
-    $timestamp = date("Y-m-d H:i:s");
-
-    if (curl_errno($ch)) {
-        $error = curl_error($ch);
-        $logMessage = "[$timestamp] ERROR sending to $to: $error\n";
-        file_put_contents("sms_log.txt", $logMessage, FILE_APPEND);
-        curl_close($ch);
-        return ['success' => false, 'error' => $error];
-    }
-
-    curl_close($ch);
-
-    // Log the response
-    // $logMessage = "[$timestamp] SMS sent to $to: $response\n";
-    // file_put_contents("sms_log.txt", $logMessage, FILE_APPEND);
-
-    return ['success' => true, 'response' => $response];
-}
-							ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-								require('db.php');
-								
-								    $queryx = "SELECT system_email,company_name,domain FROM letter_head LIMIT 1";
-$resultx = mysqli_query($con, $queryx);
-$rowx = mysqli_fetch_assoc($resultx);
-$system_email = $rowx['system_email'];
-$company_name = $rowx['company_name'];
-$domain = $rowx['domain'];
-
-
-								
-								if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST['email'];
-
-        $token = str_pad(mt_rand(0, 9999999999), 6, '0', STR_PAD_LEFT);
-    $sql = "UPDATE user_license SET token='$token' WHERE username='$email'";
-
-    if ($con->query($sql) === TRUE) {
-        
-        
-               $to = $email;
-       $message = " To reset your eShed account password:
-    
-    Token: $token
-    Use this token with your mobile number to verify your identity and set a new password. ";
-        $result = sendSMS($to, $message);
-        
-        
-        $reset_link = $domain."/setup_password.php";
-        
-        header("Location: $reset_link");
-        exit;
-         
-    } else {
-        echo "<h4 class='text-primary text-center m-b-25'>Error: " . $sql . "<br></h4>" . $con->error;
-    }
-
-    $con->close();
-}
-								
-								?>  
+							$feedback = '';
+							if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+								$ip = $_SERVER['REMOTE_ADDR'];
+								$limit_time = date('Y-m-d H:i:s', strtotime('-10 minutes'));
+								$attempt_stmt = $con->prepare("SELECT COUNT(*) AS c FROM login_attempts WHERE ip_address = ? AND attempt_time > ? AND try_for='reset'");
+								$attempt_stmt->bind_param('ss', $ip, $limit_time);
+								$attempt_stmt->execute();
+								$attempt_row = $attempt_stmt->get_result()->fetch_assoc();
+								$attempt_stmt->close();
+								if ($attempt_row && $attempt_row['c'] > 5) {
+									$feedback = 'Too many requests. Please wait a moment.';
+								} else {
+									$mobile = trim($_POST['email'] ?? '');
+									// Basic format check (Sri Lanka 10 digits starting with 0) fallback generic.
+									if (!preg_match('/^0\d{9}$/', $mobile)) {
+										$feedback = 'If the account exists, a reset code will be sent.'; // generic
+									} else {
+										$user_stmt = $con->prepare("SELECT usr_id, username FROM user_license WHERE username = ? AND account_status='1' LIMIT 1");
+										$user_stmt->bind_param('s', $mobile);
+										$user_stmt->execute();
+										$user = $user_stmt->get_result()->fetch_assoc();
+										$user_stmt->close();
+										// Always behave same timing
+										$raw_token = (string)random_int(100000, 999999); // 6-digit secure token
+										if ($user) {
+											$upd_stmt = $con->prepare("UPDATE user_license SET token = ? WHERE usr_id = ?");
+											$upd_stmt->bind_param('si', $raw_token, $user['usr_id']);
+											$upd_stmt->execute();
+											$upd_stmt->close();
+												$sms_msg = "Reset Token: $raw_token\nUse this to verify and set a new password.";
+												$smsHelper->sendSMS(0, $mobile, $sms_msg, 'RESET');
+										}
+										$log_stmt = $con->prepare("INSERT INTO login_attempts (ip_address, attempt_time, try_for) VALUES (?, NOW(), 'reset')");
+										$log_stmt->bind_param('s', $ip);
+										$log_stmt->execute();
+										$log_stmt->close();
+										$feedback = 'If the account exists, a reset code will be sent.';
+										header('Location: setup_password.php');
+										exit;
+									}
+								}
+							}
+							?>
+							<?php if ($feedback !== '') { echo '<p class="text-danger">' . htmlspecialchars($feedback) . '</p>'; } ?>  
 						 
                 
                   <form method="post" action="">

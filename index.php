@@ -1,4 +1,5 @@
 <?php include 'header.php'; ?>
+<?php include("assets/js.php"); ?>
 <div class="modal fade" id="browserModal" tabindex="-1" role="dialog" aria-labelledby="browserModalLabel">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -43,27 +44,29 @@
 
 
 
-                <div class="card-block">
+                <div class="card-block" style='width:100%'>
                     <div class="row boot-ui">
 
 
 
 
-
-                        <a href='accounts'>
+                        <a href='ds'>
                             <div class="col-sm-3 col-xs-12 waves-effect waves-light">
-                                <div class="grid-material bg-danger" style="opacity: .9;"><img src='img/Supply.png'
-                                        width='120px;'><br> Accounts</div>
+                                <div class="grid-material bg-danger" style="opacity: .9;"><img src='img/ds.png'
+                                        width='100px;'><br> Divisional Secretariat</div>
                             </div>
                         </a>
+
+
 
 
                         <a href='admin'>
                             <div class="col-sm-3 col-xs-12 waves-effect waves-light">
                                 <div class="grid-material bg-danger" style="opacity: .9;"><img src='img/admin1.png'
-                                        width='120px;'><br> ADMIN</div>
+                                        width='100px;'><br> ADMIN</div>
                             </div>
                         </a>
+
 
 
 
@@ -97,10 +100,10 @@ $module_q = mysqli_query($con, "
     LIMIT 1
 ");
 
-$has_module = false;
-if ($row = mysqli_fetch_assoc($module_q)) {
-    $has_module = $row['accounts'] || $row['store'] || $row['admin'] || $row['report'];
-}
+// $has_module = false;
+// if ($row = mysqli_fetch_assoc($module_q)) {
+//     $has_module = $row['accounts'] || $row['store'] || $row['admin'] || $row['report'];
+// }
 
 // Determine message
 $alertMessage = '';
@@ -108,9 +111,10 @@ if (!$has_location && !$has_module) {
     $alertMessage = "No modules or locations have been allocated to your account.<br>Please contact the system administrator.";
 } elseif (!$has_location) {
     $alertMessage = "No location has been allocated to your account.<br>Please contact the system administrator.";
-} elseif (!$has_module) {
-    $alertMessage = "No module has been allocated to your account.<br>Please contact the system administrator.";
-}
+} 
+// elseif (!$has_module) {
+//     $alertMessage = "No module has been allocated to your account.<br>Please contact the system administrator.";
+// }
 
 // Show alert if needed
 if ($alertMessage !== '') {
@@ -149,81 +153,8 @@ if ($alertMessage !== '') {
 
 
 <?php include 'footer.php';?>
+<?php include("assets/js.php"); ?>
 <!-- Include jQuery -->
 <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>-->
 <!-- Include Bootstrap JS -->
 <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
-
-<script>
-$(document).ready(function() {
-
-    function getBrowserInfo() {
-        var ua = navigator.userAgent;
-        var tem;
-        var M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
-        if (/trident/i.test(M[1])) {
-            tem = /\brv[ :]+(\d+)/g.exec(ua) || [];
-            return 'IE ' + (tem[1] || '');
-        }
-        if (M[1] === 'Chrome') {
-            tem = ua.match(/\b(OPR|Edge)\/(\d+)/);
-            if (tem != null) return tem.slice(1).join(' ').replace('OPR', 'Opera').replace('Edge', 'Edge ');
-        }
-        M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, '-?'];
-        if ((tem = ua.match(/version\/(\d+)/i)) != null) M.splice(1, 1, tem[1]);
-        return M.join(' ');
-    }
-
-    var browserInfo = getBrowserInfo();
-
-
-    var isLargeScreen = window.innerWidth > 1024;
-    var isChrome = browserInfo.toLowerCase().includes('chrome');
-    var isEdge = browserInfo.toLowerCase().includes('edge');
-    var isUpdatedChrome = isChrome && parseInt(browserInfo.split(' ')[1], 10) >= 108;
-    var isUpdatedEdge = isEdge && parseInt(browserInfo.split(' ')[1], 10) >= 108;
-
-    if (isLargeScreen && (!isChrome || !isUpdatedChrome) && (!isEdge || !isUpdatedEdge)) {
-        $('#browserModal').modal('show');
-    }
-});
-</script>
-<!-- Modal -->
-<div class="modal fade" id="zoomModal" tabindex="-1" role="dialog" aria-labelledby="zoomModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="zoomModalLabel">Adjust Your Zoom</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>For the best experience, please set your browser zoom to <strong>90%</strong>.</p>
-                <p>
-                    Press <kbd>Ctrl</kbd> + <kbd>-</kbd> <br>
-
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Got it</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-<script>
-//   function estimateZoomLevel() {
-//     const ratio = window.outerWidth / window.innerWidth;
-//     return Math.round(ratio * 100);
-//   }
-
-//   $(document).ready(function () {
-//     const zoom = estimateZoomLevel();
-
-//     if (zoom !== 90) {
-//       $('#zoomModal').modal('show');
-//     }
-//   });
-</script>

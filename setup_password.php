@@ -2,373 +2,294 @@
 <html lang="en">
 
 <head>
-	<title>User Registration</title>
+    <title>User Registration</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="description" content="codedthemes">
+    <meta name="keywords"
+        content=", Responsive, Landing, Bootstrap, App, Template, Mobile, iOS, Android, apple, creative app">
+    <meta name="author" content="codedthemes">
 
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-	<meta name="description" content="codedthemes">
-	<meta name="keywords" content=", Responsive, Landing, Bootstrap, App, Template, Mobile, iOS, Android, apple, creative app">
-	<meta name="author" content="codedthemes">
+    <link rel="shortcut icon" href="assets/images/favicon.png" type="image/x-icon">
+    <link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
 
-	<!-- Favicon icon -->
-	<link rel="shortcut icon" href="assets/images/favicon.png" type="image/x-icon">
-	<link rel="icon" href="assets/images/favicon.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css?family=Ubuntu:400,500,700" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="assets/icon/icofont/css/icofont.css">
+    <link rel="stylesheet" type="text/css" href="assets/plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/plugins/Waves/waves.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/main.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/responsive.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/color/color-1.min.css" id="color" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+    ul.password-req {
+        list-style: none;
+        padding-left: 0;
+    }
 
-	<!-- Google font-->
-	<link href="https://fonts.googleapis.com/css?family=Ubuntu:400,500,700" rel="stylesheet">
+    .password-req li {
+        margin: 4px 0;
+    }
 
-	<!-- iconfont -->
-	<link rel="stylesheet" type="text/css" href="assets/icon/icofont/css/icofont.css">
+    .password-req .valid {
+        color: #198754;
+    }
 
-	<!-- Required Fremwork -->
-	<link rel="stylesheet" type="text/css" href="assets/plugins/bootstrap/css/bootstrap.min.css">
-
-	<!-- waves css -->
-	<link rel="stylesheet" type="text/css" href="assets/plugins/Waves/waves.min.css">
-
-	<!-- Style.css -->
-	<link rel="stylesheet" type="text/css" href="assets/css/main.css">
-
-	<!-- Responsive.css-->
-	<link rel="stylesheet" type="text/css" href="assets/css/responsive.css">
-	<!--color css-->
-	<link rel="stylesheet" type="text/css" href="assets/css/color/color-1.min.css" id="color" />
- 
-	
-<script>
-            var passwordStrength = 0;
-
-            function checkPasswordStrength(password) {
-                passwordStrength = 0;
-                if (password.length >= 8) passwordStrength += 1;
-                if (password.match(/([a-z].*[A-Z])|([A-Z].*[a-z])/)) passwordStrength += 1;
-                if (password.match(/([0-9])/)) passwordStrength += 1;
-                if (password.match(/([!,%,&,@,#,$,^,*,?,_,~])/)) passwordStrength += 1;
-                
-                var strengthText;
-                switch(passwordStrength) {
-                    case 0:
-                    case 1:
-                    case 2:
-                        strengthText = "Weak";
-                        break;
-                    case 3:
-                        strengthText = "Medium";
-                        break;
-                    case 4:
-                        strengthText = "Strong";
-                        break;
-                }
-                document.getElementById('strength').innerHTML = strengthText;
-            }
-
-            function validatePasswords() {
-                var password = document.getElementById('password').value;
-                var confirmPassword = document.getElementById('confirm_password').value;
-
-                if (password !== confirmPassword) {
-                    alert("Passwords do not match.");
-                    return false;
-                }
-                
-                if (passwordStrength < 3) {
-                    alert("Password strength must be Medium or Strong.");
-                    return false;
-                }
-                return true;
-            }
-
-            function disableCopyPaste() {
-                var fields = [document.getElementById('password'), document.getElementById('confirm_password')];
-                fields.forEach(function(field) {
-                    field.onpaste = function(e) {
-                        e.preventDefault();
-                        alert("Pasting is not allowed.");
-                    };
-                    field.oncopy = function(e) {
-                        e.preventDefault();
-                        alert("Copying is not allowed.");
-                    };
-                });
-            }
-
-            window.onload = disableCopyPaste;
-        </script>
- 
+    .password-req .invalid {
+        color: #dc3545;
+    }
+    </style>
 </head>
 
 <body>
+    <section class="login p-fixed d-flex text-center bg-primary common-img-bg">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="login-card card-block">
+                        <div class="text-center">
+                            <img src="img/gov.png" alt="logo" width='40px;'>
+                            <h2 style='color:#000;'>RBH</h2>
+                            <font style='color:#000;'>Raja Bake House<br>
+                                Trincomalee</font>
+                        </div>
 
-	<section class="login p-fixed d-flex text-center bg-primary common-img-bg">
-		<div class="container-fluid">
-			<div class="row">
-				<div class="col-xs-12">
-					<div class="login-card card-block">
-					 
-							<div class="text-center">
-								<img src="assets/images/logo-black.png" alt="logo">
-							</div>
-							
-							
-							
-							<?php 
-						 
-							require('db.php');
-							if (isset($_POST['confirm_password'])) {
-                                    $token = $_POST['token'];
-                                    $user_name = $_POST['user_name'];
-                                    $new_password = md5("893121129V".$_POST['password']);
-                                    
-                             
-								$query1 = "SELECT * from user_license where token='$token' AND username = '$user_name' ";
-								$result = mysqli_query($con, $query1) or die(mysqli_error());
-						 
-								$row = mysqli_fetch_assoc($result);
-                                $username = $row['username'];
-   
-    
-                                 $sql = "UPDATE user_license SET password='$new_password', account_status='1' ,token='Expired'  WHERE token='$token'";
+                        <?php
+                        ini_set('display_errors', 1);
+                        ini_set('display_startup_errors', 1);
+                        error_reporting(E_ALL);
+                        require 'db.php';
 
-                                          if ($con->query($sql) === TRUE) {
-        
-        
-        	                            $date = date('Y-m-d h:i', time());
-										$token2 = md5(round(microtime(true)) / 0.2);
-										$update = "UPDATE user_license SET `last_log_in`= '" . $date . "',`last_token`= '" . $token2 . "'  WHERE username = '" . $username . "'";
-						                mysqli_query($con, $update);
-						                
-						                		session_destroy();
-						                		session_start(); 
-                                       $_SESSION['username'] = $row['username'];
-										$_SESSION['customer'] = $row['customer'];
-										$_SESSION['i_name'] = $row['i_name'];
-										$_SESSION['app_name'] = "e-Ayurvedic";
-										$_SESSION['company_name'] = "PDIM";
-										$_SESSION['last_token'] = $token2;
-										 $_SESSION['company'] = "Department of Indigenous Medicine";
-							 
-										$_SESSION['address1'] = "Eastern Province";
-										
-										
-										
-										
-										
-        
-                                   $token1 = MD5(rand(1000, 2000));
-									$update = "INSERT INTO `user_device`( pf_no, token, IP) VALUES ('$username','$token1','$ip')";
-									mysqli_query($con, $update) or die(mysqli_error());
+                        $feedback = '';
 
+                        // Final step: save password
+                        if (isset($_POST['confirm_password'])) {
+                            $token = $_POST['token'] ?? '';
+                            $user_name = $_POST['user_name'] ?? '';
+                            $password = $_POST['password'] ?? '';
 
+                            // Rate limit
+                            $ip = $_SERVER['REMOTE_ADDR'];
+                            $limit_time = date('Y-m-d H:i:s', strtotime('-10 minutes'));
+                            $rl = $con->prepare("SELECT COUNT(*) AS c FROM login_attempts WHERE ip_address=? AND attempt_time>? AND try_for='setup_password_final'");
+                            $rl->bind_param('ss', $ip, $limit_time);
+                            $rl->execute();
+                            $rl_cnt = $rl->get_result()->fetch_assoc()['c'] ?? 0;
+                            $rl->close();
+                            if ($rl_cnt > 5) {
+                                echo "<h4 class='text-danger'>Too many attempts. Try again later.</h4>";
+                                exit;
+                            }
+                            $log = $con->prepare("INSERT INTO login_attempts (ip_address, attempt_time, try_for) VALUES (?, NOW(), 'setup_password_final')");
+                            $log->bind_param('s', $ip);
+                            $log->execute();
+                            $log->close();
 
+                            // Server-side complexity
+                            $len = strlen($password) >= 8;
+                            $upper = preg_match('/[A-Z]/', $password);
+                            $lower = preg_match('/[a-z]/', $password);
+                            $num = preg_match('/[0-9]/', $password);
+                            $spec = preg_match('/[\W_]/', $password);
+                            if (!($len && $upper && $lower && $num && $spec)) {
+                                echo "<h4 class='text-danger'>Password does not meet complexity requirements.</h4>";
+                                exit;
+                            }
 
-									$simple_string = $token1;
-									$ciphering = "AES-128-CTR";
-									$iv_length = openssl_cipher_iv_length($ciphering);
-									$options = 0;
-									$encryption_iv = '1234567891011121';
-									$encryption_key = "kiritharan100@gmail.com";
-									$encryption = openssl_encrypt(
-										$simple_string,
-										$ciphering,
-										$encryption_key,
-										$options,
-										$encryption_iv
-									);
+                            // Verify token+username
+                            $sel = $con->prepare("SELECT usr_id FROM user_license WHERE token=? AND username=? LIMIT 1");
+                            $sel->bind_param('ss', $token, $user_name);
+                            $sel->execute();
+                            $u = $sel->get_result()->fetch_assoc();
+                            $sel->close();
+                            if (!$u) {
+                                echo "<h4 class='text-danger'>Invalid token or user.</h4>";
+                                exit;
+                            }
 
-								 	$cookie_name = "DR" . $row['usr_id'];
-									$cookie_value = $encryption;
-									 
-									setcookie($cookie_name, $cookie_value, time() + (86400 * 665), "/");
+                            $hash = password_hash($password, PASSWORD_DEFAULT);
+                            $last_token = bin2hex(random_bytes(32));
+                            $uid = (int)$u['usr_id'];
+                            $upd = $con->prepare("UPDATE user_license SET password=?, account_status='1', token='Expired', last_log_in=NOW(), last_token=? WHERE usr_id=?");
+                            $upd->bind_param('ssi', $hash, $last_token, $uid);
+                            if ($upd->execute()) {
+                                echo "<h3 class='text-primary text-center m-b-25'>Password set successfully. Redirecting to login...</h3>";
+                                header('refresh:2;url=login.php');
+                                exit;
+                            } else {
+                                echo "<h4 class='text-danger'>Failed to set password. Please try again.</h4>";
+                                exit;
+                            }
+                        }
+                        ?>
 
-								 
-									 	header("refresh:2;url=index.php");
-        
-                                     echo "<h3 class='text-primary text-center m-b-25'>Thank you for accepting the invitation. You will be redirected shortly.  </h23";
-                                   
-                                     
-                                     
-                                     
-                                     
-                                    } else {
-                                       echo "<h2 class='text-primary text-center m-b-25'> Invitation Alredy used </h2>";
-                                    }
+                        <h3 class="text-primary text-center m-b-25">Accept Invitation</h3>
 
-    $con->close();
-} else {
-   
-   
-    
-     
-							 
-                            
-                                
-                              
-    ?>
-    
-    
-    
-    
-    
-    
-							
-							
-							<h3 class="text-primary text-center m-b-25">Accept Invitation  </h3>
-							
-						 <?php if(!isset($_POST['set_password'])){?> 
-						 
-						   <form method="POST" action="">
-                                
-        
-                
-                
-                               <div class="md-group" align='center'>
-								<div class="md-input-wrapper">
-								     <input type="number" name="mobile_number" style='text-align:center;'    required class="md-form-control" style="width:200px;">
-									<!--<input type="number" name='token_input' class="md-form-control" style="width:200px;" required />-->
-									<label>Enter Your Mobile Number:</label>
-								</div>
-								  
-							</div>
-                
-						 
-							<div class="md-group" align='center'>
-								<div class="md-input-wrapper">
-								     <input type="text" name="token" style='text-align:center;'   required class="md-form-control" style="width:200px;">
-									<!--<input type="number" name='token_input' class="md-form-control" style="width:200px;" required />-->
-									<label>Token</label>
-								</div>
-								 
-							</div>
-							<div class="btn-forgot">
-							                       <input type="submit" name='set_password' value="Set Password" class="btn btn-primary btn-md waves-effect waves-light text-center" >
-							                     
-				 
-								</button>
-								<br> <br>
-								  <a href="login.php" class="btn btn-outline-secondary btn-md waves-effect waves-light">Go to Login</a>
-							</div>
-							
-							</form>
-						 
-						 
-						 
-						 
-						 <?php } else {
-						     
-					             $token = $_POST['token'];
-                                    $user_name = $_POST['mobile_number'];
-                                    
-                                    
-                                    
-                                                        $ip = $_SERVER['REMOTE_ADDR'];
-                                                        $limit_time = date("Y-m-d H:i:s", strtotime("-10 minutes"));
-                                                        
-                                                        // Count attempts in last 10 minutes
-                                                        $sql = "SELECT COUNT(*) as attempt_count FROM login_attempts WHERE ip_address = '$ip' AND attempt_time > '$limit_time' AND try_for='setup_password'";
-                                                        $result = mysqli_query($con, $sql);
-                                                        $row = mysqli_fetch_assoc($result);
-                                                        
-                                                        if ($row['attempt_count'] > 5) {
-                                                            die("<h4 style='color:red;'>Too many attempts. Try again later.</h4>");
-                                                        }
-                                                        
-                                                        // Log attempt
-                                                        mysqli_query($con, "INSERT INTO login_attempts (ip_address, attempt_time , try_for) VALUES ('$ip', NOW(),'setup_password')");
-                                   
-                                    
-                                        $stmt = $con->prepare("SELECT * FROM user_license WHERE token = ? AND username = ?");
-                                        $stmt->bind_param("ss", $token, $user_name);
-                                        $stmt->execute();
-                                        
-                                        $result = $stmt->get_result();
-                                        $rowcount = $result->num_rows;
-                                        
-                                        if ($rowcount > 0) {
-                                            $row = $result->fetch_assoc();
-                                            // proceed with password setup
-                                        } else {
-                                            echo "<h3>ERROR</h3>";
-                                            exit;
-                                        }
-                                        $stmt->close();
-						     
-						 
-						 
-						 
-						 
-						 ?>
-                
-                 <form method="post" action="" onsubmit="return validatePasswords()">
-                    <input type="hidden" name="token" value="<?php echo $_POST['token']; ?>">
-         <input type="hidden" name="user_name" value="<?php echo $_POST['mobile_number']; ?>">
-                
-                
-                               <div class="md-group" align='center'>
-								<div class="md-input-wrapper">
-								     <input type="password" name="password" style='text-align:center;' id="password" onkeyup="checkPasswordStrength(this.value)" required class="md-form-control" style="width:200px;">
-									<!--<input type="number" name='token_input' class="md-form-control" style="width:200px;" required />-->
-									<label>Please set your password:</label>
-								</div>
-								  <p>Password Strength: <span id="strength"></span></p>
-							</div>
-                
-						 
-							<div class="md-group" align='center'>
-								<div class="md-input-wrapper">
-								     <input type="password" name="confirm_password" style='text-align:center;' id="confirm_password" required class="md-form-control" style="width:200px;">
-									<!--<input type="number" name='token_input' class="md-form-control" style="width:200px;" required />-->
-									<label>Confirm password</label>
-								</div>
-								 <p>Passwords are case sensitive, use a combination of uppercase and lowercase letters. Use a mixture of letters, numbers, and special characters. Minimum 8 characters.</p>
-							</div>
-							<div class="btn-forgot">
-							                       <input type="submit" value="Set Password" class="btn btn-primary btn-md waves-effect waves-light text-center" onclick="submitForm()">
-				 
-								</button>
-							</div>
-							</form>
-							
-							<?php } ?>
-							
-							
-							
-							
-							
-							<?php } ?>
-							<div class="row">
-								<div class="col-xs-12 text-center m-t-25">
+                        <?php if (!isset($_POST['set_password'])) { ?>
+                        <form method="POST" action="">
+                            <div class="md-group" align="center">
+                                <div class="md-input-wrapper">
+                                    <input type="number" name="mobile_number" style="text-align:center;" required
+                                        class="md-form-control" style="width:200px;">
+                                    <label>Enter Your Mobile Number:</label>
+                                </div>
+                            </div>
+                            <div class="md-group" align="center">
+                                <div class="md-input-wrapper">
+                                    <input type="text" name="token" style="text-align:center;" required
+                                        class="md-form-control" style="width:200px;">
+                                    <label>Token</label>
+                                </div>
+                            </div>
+                            <div class="btn-forgot">
+                                <input type="submit" name="set_password" value="Set Password"
+                                    class="btn btn-primary btn-md waves-effect waves-light text-center">
+                                <br><br>
+                                <a href="login.php" class="btn btn-outline-secondary btn-md waves-effect waves-light">Go
+                                    to Login</a>
+                            </div>
+                        </form>
+                        <?php } else { ?>
+                        <?php
+                            // Verify token + rate limit then show password form
+                            $token = $_POST['token'] ?? '';
+                            $user_name = $_POST['mobile_number'] ?? '';
+                            $ip = $_SERVER['REMOTE_ADDR'];
+                            $limit_time = date('Y-m-d H:i:s', strtotime('-10 minutes'));
+                            $rl = $con->prepare("SELECT COUNT(*) AS c FROM login_attempts WHERE ip_address=? AND attempt_time>? AND try_for='setup_password'");
+                            $rl->bind_param('ss', $ip, $limit_time);
+                            $rl->execute();
+                            $c = $rl->get_result()->fetch_assoc()['c'] ?? 0;
+                            $rl->close();
+                            if ($c > 5) {
+                                echo "<h4 class='text-danger'>Too many attempts. Try again later.</h4>";
+                                exit;
+                            }
+                            $log = $con->prepare("INSERT INTO login_attempts (ip_address, attempt_time, try_for) VALUES (?, NOW(), 'setup_password')");
+                            $log->bind_param('s', $ip);
+                            $log->execute();
+                            $log->close();
 
-									 
+                            $stmt = $con->prepare("SELECT 1 FROM user_license WHERE token=? AND username=? LIMIT 1");
+                            $stmt->bind_param('ss', $token, $user_name);
+                            $stmt->execute();
+                            $ok = $stmt->get_result()->num_rows === 1;
+                            $stmt->close();
+                            if (!$ok) {
+                                echo "<h3 class='text-danger'>Invalid details.</h3>";
+                                exit;
+                            }
+                            ?>
+                        <form method="post" action="">
+                            <input type="hidden" name="token" value="<?php echo htmlspecialchars($token); ?>">
+                            <input type="hidden" name="user_name" value="<?php echo htmlspecialchars($user_name); ?>">
 
-								</div>
-							</div>
-							<!-- end of btn-forgot class-->
-						</form>
-						<!-- end of form -->
-					</div>
-					<!-- end of login-card -->
-				</div>
-				<!-- end of col-sm-12 -->
-			</div>
-			<!-- end of row -->
-		</div>
-		<!-- end of container-fluid -->
-	</section>
+                            <div class="md-group" align="center">
+                                <div class="md-input-wrapper">
+                                    <input type="password" name="password" id="new_password" class="md-form-control"
+                                        style="width:200px; text-align:center;" required>
+                                    <label>Please set your password:</label>
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="show_new">
+                                    <label class="form-check-label" for="show_new">Show Password</label>
+                                </div>
+                            </div>
 
-	<script src="assets/plugins/jquery/dist/jquery.min.js"></script>
-	<script src="assets/plugins/jquery-ui/jquery-ui.min.js"></script>
-	<script src="assets/plugins/tether/dist/js/tether.min.js"></script>
+                            <div class="md-group" align="center">
+                                <div class="md-input-wrapper">
+                                    <input type="password" name="confirm_password" id="confirm_password"
+                                        class="md-form-control" style="width:200px; text-align:center;" required>
+                                    <label>Confirm password</label>
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="show_confirm">
+                                    <label class="form-check-label" for="show_confirm">Show Confirm Password</label>
+                                </div>
+                                <div class="mt-3">
+                                    <ul class="password-req" id="requirements">
+                                        <li id="length" class="invalid"><i class="fa fa-times"></i> Min 8 characters
+                                        </li>
+                                        <li id="uppercase" class="invalid"><i class="fa fa-times"></i> At least one
+                                            uppercase</li>
+                                        <li id="lowercase" class="invalid"><i class="fa fa-times"></i> At least one
+                                            lowercase</li>
+                                        <li id="number" class="invalid"><i class="fa fa-times"></i> At least one number
+                                        </li>
+                                        <li id="special" class="invalid"><i class="fa fa-times"></i> At least one
+                                            special</li>
+                                        <li id="match" class="invalid"><i class="fa fa-times"></i> Passwords match</li>
+                                    </ul>
+                                </div>
+                            </div>
 
-	<!-- Required Fremwork -->
-	<script src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+                            <div class="btn-forgot">
+                                <input type="submit" id="submitBtn" disabled value="Set Password"
+                                    class="btn btn-primary btn-md waves-effect waves-light text-center">
+                            </div>
+                        </form>
+                        <?php } ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-	<!-- waves effects.js -->
-	<script src="assets/plugins/Waves/waves.min.js"></script>
+    <script src="assets/plugins/jquery/dist/jquery.min.js"></script>
+    <script src="assets/plugins/jquery-ui/jquery-ui.min.js"></script>
+    <script src="assets/plugins/tether/dist/js/tether.min.js"></script>
+    <script src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/plugins/Waves/waves.min.js"></script>
+    <script type="text/javascript" src="assets/pages/elements.js"></script>
 
-	<!-- Custom js -->
-	<script type="text/javascript" src="assets/pages/elements.js"></script>
+    <script>
+    $(document).ready(function() {
+        function validatePassword() {
+            var password = $("#new_password").val();
+            var confirm = $("#confirm_password").val();
 
+            var length = password.length >= 8;
+            var upper = /[A-Z]/.test(password);
+            var lower = /[a-z]/.test(password);
+            var number = /[0-9]/.test(password);
+            var special = /[\W_]/.test(password);
+            var match = password === confirm && password.length > 0;
+
+            updateReq("#length", length);
+            updateReq("#uppercase", upper);
+            updateReq("#lowercase", lower);
+            updateReq("#number", number);
+            updateReq("#special", special);
+            updateReq("#match", match);
+
+            if (length && upper && lower && number && special && match) {
+                $("#submitBtn").prop("disabled", false);
+            } else {
+                $("#submitBtn").prop("disabled", true);
+            }
+        }
+
+        function updateReq(id, status) {
+            if (status) {
+                $(id).removeClass("invalid").addClass("valid").html('<i class="fa fa-check"></i> ' + $(id)
+                    .text().replace(/^.*? /, ""));
+            } else {
+                $(id).removeClass("valid").addClass("invalid").html('<i class="fa fa-times"></i> ' + $(id)
+                    .text().replace(/^.*? /, ""));
+            }
+        }
+
+        $("#new_password, #confirm_password").on("keyup", validatePassword);
+
+        $("#show_new").on("change", function() {
+            $("#new_password").attr("type", this.checked ? "text" : "password");
+        });
+        $("#show_confirm").on("change", function() {
+            $("#confirm_password").attr("type", this.checked ? "text" : "password");
+        });
+    });
+    </script>
 </body>
 
-</html>
+</html><?php exit;  ?>

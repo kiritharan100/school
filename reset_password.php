@@ -107,7 +107,7 @@
 					<div class="login-card card-block">
 					 
 							<div class="text-center">
-								<img src="assets/images/logo-black.png" alt="logo">
+								<img src="assets/images/logo-black.png" alt="logo"  >
 							</div>
 							
 							
@@ -147,11 +147,11 @@
 						                mysqli_query($con, $update);
 						                
 						                		session_destroy();
-						                		session_start(); 
+                            									if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
                                        $_SESSION['username'] = $row['username'];
 										$_SESSION['customer'] = $row['customer'];
 										$_SESSION['i_name'] = $row['i_name'];
-										$_SESSION['app_name'] = "eShed";
+										$_SESSION['app_name'] = "e-Land";
 										$_SESSION['company_name'] = $entity;
 										$_SESSION['last_token'] = $token2;
 										 $_SESSION['company'] = $entity;

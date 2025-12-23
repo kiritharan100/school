@@ -13,12 +13,12 @@ if(isset($_POST['md5_client']) && isset($_POST['status'])) {
         
     }
 
-    
-
     // Update the client status in the database
-    $query = "UPDATE client_registration SET user_license = '$status' WHERE md5_client = '$md5_client'";
+    $query = "UPDATE client_registration SET user_license = ? WHERE md5_client = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("ss", $status, $md5_client);
     
-    if(mysqli_query($con, $query)) {
+    if($stmt->execute()) {
         echo "success";
     } else {
         echo "error";
