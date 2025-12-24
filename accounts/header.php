@@ -146,7 +146,7 @@ $company_id = $_SESSION['customer'];
                         <a href="#!" style='font-weight: 800;    font-size: 25px;' data-toggle="dropdown" role="button"
                             aria-haspopup="true" aria-expanded="false"
                             class="dropdown-toggle drop icon-circle drop-image">
-                            <span> <i class="fa fa-user" aria-hidden="true"></i> ADMIN</span>
+                            <span> <i class="fa fa-user" aria-hidden="true"></i> BOOKKEEPING</span>
                         </a>
 
                     </li>
@@ -159,7 +159,19 @@ $company_id = $_SESSION['customer'];
 
 
 
+                        <li class="dropdown" id='language-select'>
+                            <a href="#!" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"
+                                class="dropdown-toggle drop icon-circle drop-image">
+                                <span><?php if(isset($_COOKIE['language_cook'])){ echo $client_language ;} else{ echo "Select language";} ?></span>
+                                <i class="fa fa-angle-down"></i>
+                            </a>
+                            <ul class="dropdown-menu settings-menu">
 
+                                <li id='English'>English</li>
+                                <li id='Tamil'>Tamil</li>
+                                <li id='Sinhala'>Sinhala</li>
+                            </ul>
+                        </li>
 
                         <script>
                         $("#language-select li").on("click", function() {
@@ -267,28 +279,19 @@ $company_id = $_SESSION['customer'];
                             <i class="fa fa-home"></i><span> Dashboard</span>
                         </a>
                     </li>
-
-                    <li class="<?php $url='manage_material.php'; if($url == $current_url){echo "active";}?> treeview">
+                    <li class="<?php $url='manage_revinue.php'; if($url == $current_url){echo "active";}?> treeview">
                         <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa-solid fa-user"></i><span> Material</span>
+                            <i class="fa fa-money"></i><span> Manage Revinue</span>
+                        </a>
+                    </li>
+                    <li
+                        class="<?php $url='manage_expenditure.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa fa-credit-card"></i><span> Manage Expenditure</span>
                         </a>
                     </li>
 
 
-
-                    <li class="<?php $url='manage_user.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa-solid fa-user"></i><span> Manage Users</span>
-                        </a>
-                    </li>
-
-
-
-                    <li class="<?php $url='report_user_log.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-file"></i><span> User Log</span>
-                        </a>
-                    </li>
 
 
                 </ul>

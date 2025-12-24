@@ -65,11 +65,38 @@ if(isset($_REQUEST['from_date'])){
                                              <th width="60px">Date</th>
                                          </tr>
                                      </thead>
+                                     <tbodty>
+                                         <tr>
+                                             <td>1</td>
+                                             <td>John Doe</td>
+                                             <td>Login</td>
+                                             <td>Sample</td>
+                                             <td>New York, USA</td>
+                                             <td>
+                                                 <div class="dropdown open">
+                                                     <button class="btn btn-secondary dropdown-toggle" type="button"
+                                                         id="actionMenuButton" data-toggle="dropdown"
+                                                         aria-haspopup="true" aria-expanded="true">
+                                                         Action
+                                                     </button>
+                                                     <div class="dropdown-menu" aria-labelledby="actionMenuButton">
+                                                         <a class="dropdown-item edit-button" href="#" data-user-id="1">
+                                                             <i class="fa fa-user" aria-hidden="true"></i> Edit User</a>
+                                                         <a class="dropdown-item active-button" href="#"
+                                                             data-user-id="1"> <i class="fa fa-user"
+                                                                 aria-hidden="true"></i> Active</a>
+                                                         <a class="dropdown-item inactive-button" href="#"
+                                                             data-user-id="1"><i class="fa fa-ban"
+                                                                 aria-hidden="true"></i> Deactive</a>
+                                                     </div>
+                                                 </div>
+                                             </td>
 
-                                     <tbody>
 
 
-                                     </tbody>
+
+
+                                             </tbody>
 
                                  </table>
 

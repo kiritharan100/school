@@ -40,20 +40,16 @@
                     </li>
 
                 </ol>
-
-
-
-
                 <div class="card-block" style='width:100%'>
                     <div class="row boot-ui">
 
 
 
 
-                        <a href='ds'>
+                        <a href='accounts'>
                             <div class="col-sm-3 col-xs-12 waves-effect waves-light">
-                                <div class="grid-material bg-danger" style="opacity: .9;"><img src='img/ds.png'
-                                        width='100px;'><br> Divisional Secretariat</div>
+                                <div class="grid-material bg-danger" style="opacity: .9;"><img src='img/dashboard.png'
+                                        width='100px;'><br> Accounts</div>
                             </div>
                         </a>
 
