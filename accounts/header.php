@@ -279,15 +279,36 @@ $company_id = $_SESSION['customer'];
                             <i class="fa fa-home"></i><span> Dashboard</span>
                         </a>
                     </li>
-                    <li class="<?php $url='manage_revinue.php'; if($url == $current_url){echo "active";}?> treeview">
+
+                    <li class="<?php $url='budget_estimates.php'; if($url == $current_url){echo "active";}?> treeview">
                         <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-money"></i><span> Manage Revinue</span>
+                            <i class="fa fa-table"></i><span> Budget Estimates</span>
+                        </a>
+                    </li>
+                    <li class="<?php $url='manage_bank.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa fa-university"></i><span> Bank & Cash Accounts</span>
+                        </a>
+                    </li>
+                    <li class="<?php $url='bank_transfer.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa fa-exchange"></i><span> Bank Transfer</span>
+                        </a>
+                    </li>
+                    <li class="<?php $url='manage_supplier.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa fa-truck"></i><span> Manage Supplier</span>
                         </a>
                     </li>
                     <li
                         class="<?php $url='manage_expenditure.php'; if($url == $current_url){echo "active";}?> treeview">
                         <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
                             <i class="fa fa-credit-card"></i><span> Manage Expenditure</span>
+                        </a>
+                    </li>
+                    <li class="<?php $url='manage_revinue.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa fa-money"></i><span> Manage Revinue</span>
                         </a>
                     </li>
 
