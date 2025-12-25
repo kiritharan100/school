@@ -290,6 +290,16 @@ $company_id = $_SESSION['customer'];
                             <i class="fa fa-university"></i><span> Bank & Cash Accounts</span>
                         </a>
                     </li>
+                    <li class="<?php $url='bank_payment.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa fa-sign-out"></i><span> Bank Payment</span>
+                        </a>
+                    </li>
+                    <li class="<?php $url='bank_receipt.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa fa-sign-in"></i><span> Bank Receipt</span>
+                        </a>
+                    </li>
                     <li class="<?php $url='bank_transfer.php'; if($url == $current_url){echo "active";}?> treeview">
                         <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
                             <i class="fa fa-exchange"></i><span> Bank Transfer</span>

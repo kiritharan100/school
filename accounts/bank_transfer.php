@@ -1,4 +1,7 @@
-<?php include 'header.php';
+<?php
+// Enable output buffering to allow header operations (setcookie) after includes
+ob_start();
+include 'header.php';
 
 $locationFilter = isset($location_id) && $location_id !== '' ? (int)$location_id : 0;
 $flash = ['type' => '', 'text' => ''];
@@ -7,6 +10,12 @@ $flash = ['type' => '', 'text' => ''];
 $currentYear = (int)date('Y');
 $fromDate = isset($_GET['from_date']) && $_GET['from_date'] !== '' ? $_GET['from_date'] : $currentYear . '-01-01';
 $toDate = isset($_GET['to_date']) && $_GET['to_date'] !== '' ? $_GET['to_date'] : $currentYear . '-12-31';
+
+// Preferred transaction date from cookie (fallback to today)
+$defaultTrDate = date('Y-m-d');
+if (isset($_COOKIE['transaction_date']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $_COOKIE['transaction_date'])) {
+    $defaultTrDate = $_COOKIE['transaction_date'];
+}
 
 // Load bank accounts for dropdown
 $bankAccounts = [];
@@ -50,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($trDate === '') {
             $flash = ['type' => 'danger', 'text' => 'Date is required.'];
         } else {
+            // persist selected date in cookie for future use
+            setcookie('transaction_date', $trDate, time() + (86400 * 180), '/');
             // Get existing txn number if editing
             if ($transferId > 0) {
                 $existingRes = mysqli_query($con, "SELECT transaction_number FROM bank_transfer WHERE id=$transferId AND location_id=$locationFilter");
@@ -174,17 +185,17 @@ if ($locationFilter > 0) {
                     <div class="card-header">
                         <form method="GET" class="form-inline float-left" style="gap:10px;">
                             <label class="mr-2">From</label>
-                            <input type="date" name="from_date" value="<?php echo htmlspecialchars($fromDate); ?>" class="form-control">
+                            <input type="date" name="from_date" value="<?php echo htmlspecialchars($fromDate); ?>"
+                                class="form-control">
                             <label class="mr-2 ml-2">To</label>
-                            <input type="date" name="to_date" value="<?php echo htmlspecialchars($toDate); ?>" class="form-control">
+                            <input type="date" name="to_date" value="<?php echo htmlspecialchars($toDate); ?>"
+                                class="form-control">
                             <button type="submit" class="btn btn-secondary ml-2">Filter</button>
+                            <button class="btn btn-primary" id="addTransferBtn" type='button'
+                                <?php echo $locationFilter === 0 ? 'disabled' : ''; ?>>
+                                <i class="fa fa-plus"></i> New Transfer
+                            </button>
                         </form>
-                        <div class="float-right">
-                        <button class="btn btn-primary" id="addTransferBtn"
-                            <?php echo $locationFilter === 0 ? 'disabled' : ''; ?>>
-                            <i class="fa fa-plus"></i> New Transfer
-                        </button>
-                        </div>
                     </div>
                     <div class="card-block">
                         <div class="table-responsive">
@@ -210,7 +221,8 @@ if ($locationFilter > 0) {
                                         <td><?php echo htmlspecialchars($tr['from_name']); ?></td>
                                         <td><?php echo htmlspecialchars($tr['to_name']); ?></td>
                                         <td><?php echo number_format((float)$tr['amount'], 2); ?></td>
-                                        <td><?php echo ((int)$tr['status'] === 1) ? 'Active' : 'Inactive'; ?></td>
+                                        <td><?php echo ((int)$tr['status'] === 1) ? 'Active' : 'Inactive'; ?>
+                                        </td>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn-secondary dropdown-toggle" type="button"
@@ -274,7 +286,8 @@ if ($locationFilter > 0) {
                     <div class="form-group row">
                         <label class="col-sm-4 col-form-label text-right" for="tr_date">Date</label>
                         <div class="col-sm-8">
-                            <input type="date" class="form-control" name="tr_date" id="tr_date" required>
+                            <input type="date" class="form-control" name="tr_date" id="tr_date"
+                                value="<?php echo htmlspecialchars($defaultTrDate); ?>" required>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -341,7 +354,7 @@ $(document).ready(function() {
         $('#transfer_id').val('');
         $('#transaction_number').val('');
         $('#transaction_number_display').val('');
-        $('#tr_date').val('');
+        $('#tr_date').val('<?php echo htmlspecialchars($defaultTrDate); ?>');
         $('#from_account').val('');
         $('#to_account').val('');
         $('#amount').val('');
@@ -386,9 +399,11 @@ $(document).ready(function() {
         var dateVal = $('#tr_date').val();
         var cy = <?php echo (int)date('Y'); ?>;
         if (dateVal) {
-            var year = parseInt(dateVal.substring(0,4), 10);
+            var year = parseInt(dateVal.substring(0, 4), 10);
             if (year !== cy) {
-                if (!confirm('You are recording a transfer for a different year. This will affect that year\'s records. Continue?')) {
+                if (!confirm(
+                        'You are recording a transfer for a different year. This will affect that year\'s records. Continue?'
+                    )) {
                     return false;
                 }
             }
