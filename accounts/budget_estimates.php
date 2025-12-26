@@ -106,20 +106,20 @@ if ($openRes) {
                 <div class="card">
                     <div class="card-header">
                         <?php if ($locationFilter === 0): ?>
-                            <div class="alert alert-warning m-b-0">
-                                Please select a working location to manage budget estimates.
-                            </div>
+                        <div class="alert alert-warning m-b-0">
+                            Please select a working location to manage budget estimates.
+                        </div>
                         <?php endif; ?>
                         <form method="GET" class="form-inline" style="gap:10px;">
                             <label for="year" class="mr-2">Select Year</label>
                             <select name="year" id="year" class="form-control">
                                 <?php foreach ($yearOptions as $y): ?>
-                                    <option value="<?php echo $y; ?>" <?php if ($y === $year) echo 'selected'; ?>>
-                                        <?php echo $y; ?>
-                                    </option>
+                                <option value="<?php echo $y; ?>" <?php if ($y === $year) echo 'selected'; ?>>
+                                    <?php echo $y; ?>
+                                </option>
                                 <?php endforeach; ?>
                                 <?php if (!in_array((int)date('Y'), $yearOptions, true)): ?>
-                                    <option value="<?php echo (int)date('Y'); ?>"><?php echo (int)date('Y'); ?></option>
+                                <option value="<?php echo (int)date('Y'); ?>"><?php echo (int)date('Y'); ?></option>
                                 <?php endif; ?>
                             </select>
                             <button type="submit" class="btn btn-primary">Load</button>
@@ -134,9 +134,9 @@ if ($openRes) {
                                 <tr>
                                     <th style="min-width:180px;">Revenue</th>
                                     <?php foreach ($expenses as $exp): ?>
-                                        <th class="rotate">
-                                            <div><span><?php echo htmlspecialchars($exp['ex_code']); ?></span></div>
-                                        </th>
+                                    <th class="rotate">
+                                        <div><span><?php echo htmlspecialchars($exp['ex_code']); ?></span></div>
+                                    </th>
                                     <?php endforeach; ?>
                                     <th class="rotate">
                                         <div><span>Opening Balance</span></div>
@@ -151,7 +151,7 @@ if ($openRes) {
                             </thead>
                             <tbody>
                                 <?php foreach ($revenues as $rev): ?>
-                                    <?php
+                                <?php
                                         $rid = (int)$rev['r_id'];
                                         $rowOpening = $opening[$rid] ?? 0;
                                         $isHeading = ((int)($rev['has_sub_category'] ?? 0) === 1);
@@ -164,63 +164,59 @@ if ($openRes) {
                                             $desc = $rev['detail_of_revinue'] ?? '';
                                         }
                                     ?>
-                                    <tr data-rid="<?php echo $rid; ?>" <?php echo $isHeading ? "data-heading='1' class='bg-light font-weight-bold'" : ""; ?>>
-                                        <td>
-                                            <strong><?php echo htmlspecialchars($rev['revinue_code']); ?></strong><br>
-                                            <small><?php echo htmlspecialchars($desc); ?></small>
-                                        </td>
-                                        <?php foreach ($expenses as $exp): ?>
-                                            <?php
+                                <tr data-rid="<?php echo $rid; ?>"
+                                    <?php echo $isHeading ? "data-heading='1' class='bg-light font-weight-bold'" : ""; ?>>
+                                    <td>
+                                        <strong><?php echo htmlspecialchars($rev['revinue_code']); ?></strong><br>
+                                        <small><?php echo htmlspecialchars($desc); ?></small>
+                                    </td>
+                                    <?php foreach ($expenses as $exp): ?>
+                                    <?php
                                                 $eid = (int)$exp['ex_id'];
                                                 $val = $allocations[$rid][$eid] ?? 0;
                                             ?>
-                                            <td>
-                                                <?php if ($isHeading): ?>
-                                                    -
-                                                <?php else: ?>
-                                                    <input
-                                                        type="number"
-                                                        step="0.01"
-                                                        class="form-control form-control-sm alloc-input"
-                                                        data-rid="<?php echo $rid; ?>"
-                                                        data-exid="<?php echo $eid; ?>"
-                                                        value="<?php echo htmlspecialchars($val); ?>"
-                                                    />
-                                                <?php endif; ?>
-                                            </td>
-                                        <?php endforeach; ?>
-                                        <td>
-                                            <?php if ($isHeading): ?>
-                                                -
-                                            <?php else: ?>
-                                                <input
-                                                    type="number"
-                                                    step="0.01"
-                                                    class="form-control form-control-sm opening-input"
-                                                    data-rid="<?php echo $rid; ?>"
-                                                    value="<?php echo htmlspecialchars($rowOpening); ?>"
-                                                />
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="collection-cell" data-rid="<?php echo $rid; ?>"><?php echo $isHeading ? '-' : '0.00'; ?></td>
-                                        <td class="row-total-cell" data-rid="<?php echo $rid; ?>"><?php echo $isHeading ? '-' : '0.00'; ?></td>
-                                    </tr>
+                                    <td>
+                                        <?php if ($isHeading): ?>
+                                        -
+                                        <?php else: ?>
+                                        <input type="number" step="0.01"
+                                            class="form-control form-control-sm alloc-input"
+                                            data-rid="<?php echo $rid; ?>" data-exid="<?php echo $eid; ?>"
+                                            value="<?php echo htmlspecialchars($val); ?>" />
+                                        <?php endif; ?>
+                                    </td>
+                                    <?php endforeach; ?>
+                                    <td>
+                                        <?php if ($isHeading): ?>
+                                        -
+                                        <?php else: ?>
+                                        <input type="number" step="0.01"
+                                            class="form-control form-control-sm opening-input"
+                                            data-rid="<?php echo $rid; ?>"
+                                            value="<?php echo htmlspecialchars($rowOpening); ?>" />
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="collection-cell" data-rid="<?php echo $rid; ?>">
+                                        <?php echo $isHeading ? '-' : '0.00'; ?></td>
+                                    <td class="row-total-cell" data-rid="<?php echo $rid; ?>">
+                                        <?php echo $isHeading ? '-' : '0.00'; ?></td>
+                                </tr>
                                 <?php endforeach; ?>
                             </tbody>
                             <tfoot>
-                                <tr class="bg-light">
+                                <tr style="font-weight:600; background-color:#A8BBF0;">
                                     <th>Total expenses</th>
                                     <?php foreach ($expenses as $exp): ?>
-                                        <th class="col-total" data-exid="<?php echo (int)$exp['ex_id']; ?>">0.00</th>
+                                    <th class="col-total" data-exid="<?php echo (int)$exp['ex_id']; ?>">0.00</th>
                                     <?php endforeach; ?>
                                     <th id="total-opening">0.00</th>
                                     <th id="total-collection">0.00</th>
                                     <th id="grand-total">0.00</th>
                                 </tr>
-                                <tr class="bg-light">
+                                <!-- <tr class="bg-light">
                                     <th>Opening Balance</th>
                                     <?php foreach ($expenses as $exp): ?>
-                                        <th>-</th>
+                                    <th>-</th>
                                     <?php endforeach; ?>
                                     <th id="sum-opening">0.00</th>
                                     <th></th>
@@ -229,12 +225,12 @@ if ($openRes) {
                                 <tr class="bg-light">
                                     <th>Income for the year</th>
                                     <?php foreach ($expenses as $exp): ?>
-                                        <th>-</th>
+                                    <th>-</th>
                                     <?php endforeach; ?>
                                     <th id="income-opening">0.00</th>
                                     <th id="income-collection">0.00</th>
                                     <th id="income-total">0.00</th>
-                                </tr>
+                                </tr> -->
                             </tfoot>
                         </table>
                     </div>
@@ -250,15 +246,20 @@ if ($openRes) {
     vertical-align: middle;
     text-align: center;
 }
-.budget-table .rotate > div {
+
+.budget-table .rotate>div {
     transform: none;
     width: auto;
 }
+
 .budget-table input {
     min-width: 80px;
     text-align: right;
 }
-.collection-cell, .row-total-cell, .col-total {
+
+.collection-cell,
+.row-total-cell,
+.col-total {
     text-align: right;
     font-weight: 600;
 }
@@ -268,7 +269,8 @@ if ($openRes) {
 (function() {
     const year = <?php echo (int)$year; ?>;
     const locationId = <?php echo (int)$locationFilter; ?>;
-    const expenses = <?php echo json_encode(array_map(function($e){ return ['ex_id'=>$e['ex_id']]; }, $expenses)); ?>;
+    const expenses =
+        <?php echo json_encode(array_map(function($e){ return ['ex_id'=>$e['ex_id']]; }, $expenses)); ?>;
     const inputs = Array.from(document.querySelectorAll('.alloc-input, .opening-input'));
 
     function format(val) {
@@ -280,7 +282,9 @@ if ($openRes) {
         let totalCollection = 0;
         let grandTotal = 0;
         let colTotals = {};
-        expenses.forEach(e => { colTotals[e.ex_id] = 0; });
+        expenses.forEach(e => {
+            colTotals[e.ex_id] = 0;
+        });
 
         // Rows
         document.querySelectorAll('#budgetTable tbody tr').forEach(row => {
@@ -336,55 +340,64 @@ if ($openRes) {
 
     function saveAllocation(rid, exid, amount) {
         fetch('ajax/save_budget.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({
-                type: 'allocation',
-                year: year,
-                location_id: locationId,
-                r_id: rid,
-                ex_id: exid,
-                amount: amount
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: 'allocation',
+                    year: year,
+                    location_id: locationId,
+                    r_id: rid,
+                    ex_id: exid,
+                    amount: amount
+                })
             })
-        })
-        .then(res => res.text())
-        .then(text => {
-            let resp;
-            try { resp = JSON.parse(text); } catch (e) {
-                alert('Server response:\n' + text);
-                return;
-            }
-            if (!resp.success) {
-                alert(resp.msg || 'Failed to save allocation');
-            }
-        })
-        .catch((e) => alert('Network error while saving allocation'));
+            .then(res => res.text())
+            .then(text => {
+                let resp;
+                try {
+                    resp = JSON.parse(text);
+                } catch (e) {
+                    alert('Server response:\n' + text);
+                    return;
+                }
+                if (!resp.success) {
+                    alert(resp.msg || 'Failed to save allocation');
+                }
+            })
+            .catch((e) => alert('Network error while saving allocation'));
     }
 
     function saveOpening(rid, amount) {
         fetch('ajax/save_budget.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                type: 'opening',
-                year: year,
-                location_id: locationId,
-                r_id: rid,
-                amount: amount
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: 'opening',
+                    year: year,
+                    location_id: locationId,
+                    r_id: rid,
+                    amount: amount
+                })
             })
-        })
-        .then(res => res.text())
-        .then(text => {
-            let resp;
-            try { resp = JSON.parse(text); } catch (e) {
-                alert('Server response:\n' + text);
-                return;
-            }
-            if (!resp.success) {
-                alert(resp.msg || 'Failed to save opening balance');
-            }
-        })
-        .catch(() => alert('Network error while saving opening balance'));
+            .then(res => res.text())
+            .then(text => {
+                let resp;
+                try {
+                    resp = JSON.parse(text);
+                } catch (e) {
+                    alert('Server response:\n' + text);
+                    return;
+                }
+                if (!resp.success) {
+                    alert(resp.msg || 'Failed to save opening balance');
+                }
+            })
+            .catch(() => alert('Network error while saving opening balance'));
     }
 
     function setInputsReadonly(isReadonly) {
