@@ -17,6 +17,7 @@ $year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
 
 // Revenue (income) rows with opening balance first
 $revenues = [];
+$incomeDetails = [];
 $openingBalance = 0;
 $incomeTotal = 0;
 $expenseTotal = 0;
@@ -51,6 +52,9 @@ if ($locationFilter > 0) {
         $rowOpening = $openingByRev[(int)$row['r_id']] ?? 0;
         $row['opening'] = $rowOpening;
         $row['collection'] = (float)$row['amt'] - (float)$rowOpening;
+        if ($rowOpening != 0.0 || (float)$row['collection'] != 0.0) {
+            $incomeDetails[] = $row;
+        }
         if ((float)$row['collection'] != 0.0) {
             $revenues[] = $row;
             $incomeTotal += (float)$row['collection'];
@@ -94,7 +98,7 @@ function expLabelPrint($row, $lang) {
             <div class="col-sm-12 p-0">
                 <div class="main-header">
                     <h4>Print Budget Estimates</h4>
-                    <button class="btn btn-primary float-right" onclick="window.print()">Print</button>
+
                 </div>
             </div>
         </div>
@@ -108,6 +112,8 @@ function expLabelPrint($row, $lang) {
                             <input type="number" class="form-control" name="year"
                                 value="<?php echo htmlspecialchars($year); ?>">
                             <button type="submit" class="btn btn-secondary ml-2">Load</button>
+                            <button type="submit" class="btn btn-primary float-right"
+                                onclick="window.print()">Print</button>
                         </form>
                     </div>
                     <div class="card-block print-area">
@@ -186,6 +192,72 @@ function expLabelPrint($row, $lang) {
                                 </table>
                             </div>
                         </div>
+                        <div class="row page-break-before">
+                            <div class="col-md-12">
+                                <h5>Detail of Income</h5>
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:30px;">#</th>
+                                            <th style="width:80px;">Code</th>
+                                            <th>Detail</th>
+                                            <th style="width:160px;" class="text-right">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                        <tr class="font-weight-bold">
+                                            <td colspan="4">Opening Balance</td>
+                                        </tr>
+
+                                        <?php $snDetail = 1; ?>
+                                        <?php foreach ($incomeDetails as $rev): ?>
+                                        <?php if ((float)$rev['opening'] != 0.0): ?>
+                                        <tr>
+                                            <td><?php echo $snDetail++; ?></td>
+                                            <td><?php echo htmlspecialchars($rev['revinue_code']); ?></td>
+                                            <td><?php echo htmlspecialchars(revLabelPrint($rev, $primaryLanguage)); ?>
+                                            </td>
+                                            <td class="text-right">
+                                                <?php echo number_format((float)$rev['opening'], 2); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                        <?php endforeach; ?>
+                                        <tr class="font-weight-bold">
+                                            <td></td>
+                                            <td colspan="2" class="text-right">Total Opening Balance</td>
+                                            <td class="text-right"><?php echo number_format($openingBalance, 2); ?></td>
+                                        </tr>
+                                        <tr class="font-weight-bold">
+                                            <td colspan="4">Current Year Income</td>
+                                        </tr>
+                                        <?php foreach ($incomeDetails as $rev): ?>
+                                        <?php if ((float)$rev['collection'] != 0.0): ?>
+                                        <tr>
+                                            <td><?php echo $snDetail++; ?></td>
+                                            <td><?php echo htmlspecialchars($rev['revinue_code']); ?></td>
+                                            <td><?php echo htmlspecialchars(revLabelPrint($rev, $primaryLanguage)); ?>
+                                            </td>
+                                            <td class="text-right">
+                                                <?php echo number_format((float)$rev['collection'], 2); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+                                        <?php endforeach; ?>
+                                        <tr class="font-weight-bold">
+                                            <td></td>
+                                            <td colspan="2" class="text-right">Total Current Year Income</td>
+                                            <td class="text-right"><?php echo number_format($incomeTotal, 2); ?></td>
+                                        </tr>
+                                        <tr class="font-weight-bold">
+                                            <td></td>
+                                            <td colspan="2" class="text-right">Final Total (Opening + Current)</td>
+                                            <td class="text-right">
+                                                <?php echo number_format($openingBalance + $incomeTotal, 2); ?></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,6 +282,29 @@ function expLabelPrint($row, $lang) {
     }
 
     html {
+        background: #fff !important;
+    }
+
+    /* remove any shaded backgrounds when printing */
+    * {
+        background: transparent !important;
+    }
+
+    /* force main containers back to white (placed after the reset above) */
+    html,
+    body,
+    .content-wrapper,
+    .container-fluid,
+    .row,
+    .body:before .col-md-12,
+    .col-md-6,
+    .card,
+    .card-block,
+    .print-area {
+        background: #fff !important;
+    }
+
+    body:before {
         background: #fff !important;
     }
 
@@ -262,6 +357,10 @@ function expLabelPrint($row, $lang) {
         box-shadow: none !important;
         margin: 0 !important;
         padding: 0 !important;
+    }
+
+    .page-break-before {
+        page-break-before: always;
     }
 
     table.table {
