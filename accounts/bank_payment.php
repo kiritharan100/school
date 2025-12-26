@@ -126,6 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             setcookie('transaction_date', $date, time()+86400*180, '/');
             setcookie('payment_bank', $bankId, time()+86400*180, '/');
+            setcookie('payment_filter_bank', $bankId, time()+86400*180, '/');
 
             // record_number generation
             $recordNo = 0;
@@ -254,34 +255,37 @@ setcookie('payment_filter_bank', (int)$filterBank, time()+86400*180, '/');
         <div class="row">
             <div class="col-sm-12">
                 <?php if ($flash['text'] !== ''): ?>
-                    <div class="alert alert-<?php echo $flash['type']; ?>">
-                        <?php echo htmlspecialchars($flash['text']); ?>
-                    </div>
+                <div class="alert alert-<?php echo $flash['type']; ?>">
+                    <?php echo htmlspecialchars($flash['text']); ?>
+                </div>
                 <?php endif; ?>
 
                 <div class="card">
                     <div class="card-header">
                         <form method="GET" class="form-inline float-left" style="gap:10px;">
                             <label class="mr-2">From</label>
-                            <input type="date" name="from_date" value="<?php echo htmlspecialchars($fromDate); ?>" class="form-control">
+                            <input type="date" name="from_date" value="<?php echo htmlspecialchars($fromDate); ?>"
+                                class="form-control">
                             <label class="mr-2 ml-2">To</label>
-                            <input type="date" name="to_date" value="<?php echo htmlspecialchars($toDate); ?>" class="form-control">
+                            <input type="date" name="to_date" value="<?php echo htmlspecialchars($toDate); ?>"
+                                class="form-control">
                             <label class="mr-2 ml-2">Bank</label>
                             <select name="filter_bank" class="form-control">
                                 <option value="0">All</option>
                                 <?php foreach ($bankAccounts as $ba): ?>
-                                    <option value="<?php echo (int)$ba['id']; ?>" <?php if ($filterBank === (int)$ba['id']) echo 'selected'; ?>>
-                                        <?php echo htmlspecialchars($ba['bank_name']); ?>
-                                    </option>
+                                <option value="<?php echo (int)$ba['id']; ?>"
+                                    <?php if ($filterBank === (int)$ba['id']) echo 'selected'; ?>>
+                                    <?php echo htmlspecialchars($ba['bank_name']); ?>
+                                </option>
                                 <?php endforeach; ?>
                             </select>
                             <button type="submit" class="btn btn-secondary ml-2">Filter</button>
-                        </form>
-                        <div class="float-right">
-                            <button class="btn btn-primary" id="addPaymentBtn" <?php echo $locationFilter === 0 ? 'disabled' : ''; ?>>
+                            <button type='button' class="btn btn-primary" id="addPaymentBtn"
+                                <?php echo $locationFilter === 0 ? 'disabled' : ''; ?>>
                                 <i class="fa fa-plus"></i> New Payment
                             </button>
-                        </div>
+                        </form>
+
                     </div>
                     <div class="card-block">
                         <div class="table-responsive">
@@ -304,45 +308,46 @@ setcookie('payment_filter_bank', (int)$filterBank, time()+86400*180, '/');
                                 </thead>
                                 <tbody>
                                     <?php foreach ($payments as $p): ?>
-                                        <tr>
-                                            <td><?php echo (int)$p['pay_id']; ?></td>
-                                            <td><?php echo htmlspecialchars($p['pay_date']); ?></td>
-                                            <td><?php echo htmlspecialchars($p['voutcher_number']); ?></td>
-                                            <td><?php echo htmlspecialchars($p['cheque_number']); ?></td>
-                                            <td><?php echo htmlspecialchars($p['bank_name']); ?></td>
-                                            <td><?php echo htmlspecialchars($p['supplier_name']); ?></td>
-                                            <td><?php echo htmlspecialchars($p['revinue_code']); ?></td>
-                                            <td><?php echo htmlspecialchars($p['ex_code']); ?></td>
-                                            <td><?php echo number_format((float)$p['amount'], 2); ?></td>
-                                            <td><?php echo htmlspecialchars($p['memo']); ?></td>
-                                            <td><?php echo ((int)$p['status'] === 1) ? 'Active' : 'Inactive'; ?></td>
-                                            <td>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">
-                                                        Action
-                                                    </button>
-                                                    <div class="dropdown-menu">
-                                                        <a class="dropdown-item edit-payment" href="#"
-                                                           data-id="<?php echo (int)$p['pay_id']; ?>"
-                                                           data-date="<?php echo htmlspecialchars($p['pay_date']); ?>"
-                                                           data-bank="<?php echo (int)$p['bank_id']; ?>"
-                                                           data-voucher="<?php echo htmlspecialchars($p['voutcher_number']); ?>"
-                                                           data-cheque="<?php echo htmlspecialchars($p['cheque_number']); ?>"
-                                                           data-supplier="<?php echo (int)$p['supplier_id']; ?>"
-                                                           data-expense="<?php echo (int)$p['expense_account']; ?>"
-                                                           data-income="<?php echo (int)$p['income_account']; ?>"
-                                                           data-amount="<?php echo htmlspecialchars($p['amount']); ?>"
-                                                           data-memo="<?php echo htmlspecialchars($p['memo']); ?>">
-                                                            <i class="fa fa-pencil"></i> Edit
-                                                        </a>
-                                                        <a class="dropdown-item delete-payment" href="#"
-                                                           data-id="<?php echo (int)$p['pay_id']; ?>">
-                                                            <i class="fa fa-trash"></i> Delete
-                                                        </a>
-                                                    </div>
+                                    <tr>
+                                        <td><?php echo (int)$p['pay_id']; ?></td>
+                                        <td><?php echo htmlspecialchars($p['pay_date']); ?></td>
+                                        <td><?php echo htmlspecialchars($p['voutcher_number']); ?></td>
+                                        <td><?php echo htmlspecialchars($p['cheque_number']); ?></td>
+                                        <td><?php echo htmlspecialchars($p['bank_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($p['supplier_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($p['revinue_code']); ?></td>
+                                        <td><?php echo htmlspecialchars($p['ex_code']); ?></td>
+                                        <td><?php echo number_format((float)$p['amount'], 2); ?></td>
+                                        <td><?php echo htmlspecialchars($p['memo']); ?></td>
+                                        <td><?php echo ((int)$p['status'] === 1) ? 'Active' : 'Inactive'; ?></td>
+                                        <td>
+                                            <div class="dropdown">
+                                                <button class="btn btn-secondary dropdown-toggle" type="button"
+                                                    data-toggle="dropdown">
+                                                    Action
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                    <a class="dropdown-item edit-payment" href="#"
+                                                        data-id="<?php echo (int)$p['pay_id']; ?>"
+                                                        data-date="<?php echo htmlspecialchars($p['pay_date']); ?>"
+                                                        data-bank="<?php echo (int)$p['bank_id']; ?>"
+                                                        data-voucher="<?php echo htmlspecialchars($p['voutcher_number']); ?>"
+                                                        data-cheque="<?php echo htmlspecialchars($p['cheque_number']); ?>"
+                                                        data-supplier="<?php echo (int)$p['supplier_id']; ?>"
+                                                        data-expense="<?php echo (int)$p['expense_account']; ?>"
+                                                        data-income="<?php echo (int)$p['income_account']; ?>"
+                                                        data-amount="<?php echo htmlspecialchars($p['amount']); ?>"
+                                                        data-memo="<?php echo htmlspecialchars($p['memo']); ?>">
+                                                        <i class="fa fa-pencil"></i> Edit
+                                                    </a>
+                                                    <a class="dropdown-item delete-payment" href="#"
+                                                        data-id="<?php echo (int)$p['pay_id']; ?>">
+                                                        <i class="fa fa-trash"></i> Delete
+                                                    </a>
                                                 </div>
-                                            </td>
-                                        </tr>
+                                            </div>
+                                        </td>
+                                    </tr>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
@@ -356,7 +361,8 @@ setcookie('payment_filter_bank', (int)$filterBank, time()+86400*180, '/');
 </div>
 
 <!-- Add/Edit Modal -->
-<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
+<div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <form method="POST" id="paymentForm">
@@ -372,7 +378,8 @@ setcookie('payment_filter_bank', (int)$filterBank, time()+86400*180, '/');
                     <div class="form-group row">
                         <label class="col-sm-4 col-form-label text-right" for="pay_date">Date</label>
                         <div class="col-sm-8">
-                            <input type="date" class="form-control" name="pay_date" id="pay_date" value="<?php echo htmlspecialchars($defaultDate); ?>" required>
+                            <input type="date" class="form-control" name="pay_date" id="pay_date"
+                                value="<?php echo htmlspecialchars($defaultDate); ?>" required>
                         </div>
                     </div>
                     <div class="form-group row">
@@ -381,7 +388,8 @@ setcookie('payment_filter_bank', (int)$filterBank, time()+86400*180, '/');
                             <select class="form-control" name="bank_id" id="bank_id" required>
                                 <option value="">Select</option>
                                 <?php foreach ($bankAccounts as $ba): ?>
-                                    <option value="<?php echo (int)$ba['id']; ?>"><?php echo htmlspecialchars($ba['bank_name']); ?></option>
+                                <option value="<?php echo (int)$ba['id']; ?>">
+                                    <?php echo htmlspecialchars($ba['bank_name']); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -389,13 +397,15 @@ setcookie('payment_filter_bank', (int)$filterBank, time()+86400*180, '/');
                     <div class="form-group row">
                         <label class="col-sm-4 col-form-label text-right" for="voutcher_number">Voucher No</label>
                         <div class="col-sm-8">
-                            <input type="text" class="form-control" name="voutcher_number" id="voutcher_number" placeholder="Enter voucher (suggested)">
+                            <input type="text" class="form-control" name="voutcher_number" id="voutcher_number"
+                                placeholder="Enter voucher (suggested)">
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-4 col-form-label text-right" for="cheque_number">Cheque No</label>
                         <div class="col-sm-8">
-                            <input type="number" class="form-control" name="cheque_number" id="cheque_number" placeholder="Enter cheque (suggested)">
+                            <input type="number" class="form-control" name="cheque_number" id="cheque_number"
+                                placeholder="Enter cheque (suggested)">
                         </div>
                     </div>
                     <div class="form-group row">
@@ -404,9 +414,11 @@ setcookie('payment_filter_bank', (int)$filterBank, time()+86400*180, '/');
                             <select class="form-control" name="supplier_id" id="supplier_id">
                                 <option value="0">Select</option>
                                 <?php foreach ($suppliers as $s): ?>
-                                    <option value="<?php echo (int)$s['sup_id']; ?>" data-inc="<?php echo (int)$s['income_account']; ?>" data-exp="<?php echo (int)$s['expense_account']; ?>">
-                                        <?php echo htmlspecialchars($s['supplier_name']); ?>
-                                    </option>
+                                <option value="<?php echo (int)$s['sup_id']; ?>"
+                                    data-inc="<?php echo (int)$s['income_account']; ?>"
+                                    data-exp="<?php echo (int)$s['expense_account']; ?>">
+                                    <?php echo htmlspecialchars($s['supplier_name']); ?>
+                                </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -417,7 +429,8 @@ setcookie('payment_filter_bank', (int)$filterBank, time()+86400*180, '/');
                             <select class="form-control" name="income_account" id="income_account">
                                 <option value="0">None</option>
                                 <?php foreach ($incomeAccounts as $inc): ?>
-                                    <option value="<?php echo (int)$inc['r_id']; ?>"><?php echo htmlspecialchars(revLabel($inc, $primaryLanguage)); ?></option>
+                                <option value="<?php echo (int)$inc['r_id']; ?>">
+                                    <?php echo htmlspecialchars(revLabel($inc, $primaryLanguage)); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -428,7 +441,8 @@ setcookie('payment_filter_bank', (int)$filterBank, time()+86400*180, '/');
                             <select class="form-control" name="expense_account" id="expense_account">
                                 <option value="0">None</option>
                                 <?php foreach ($expenseAccounts as $exp): ?>
-                                    <option value="<?php echo (int)$exp['ex_id']; ?>"><?php echo htmlspecialchars(expLabel($exp, $primaryLanguage)); ?></option>
+                                <option value="<?php echo (int)$exp['ex_id']; ?>">
+                                    <?php echo htmlspecialchars(expLabel($exp, $primaryLanguage)); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -493,12 +507,20 @@ $(document).ready(function() {
 
     function loadAutoNumbers(bankId) {
         if (!bankId) return;
-        $.getJSON('ajax/payment_helpers.php', { action: 'voucher_next', bank_id: bankId, location_id: <?php echo (int)$locationFilter; ?> }, function(resp) {
+        $.getJSON('ajax/payment_helpers.php', {
+            action: 'voucher_next',
+            bank_id: bankId,
+            location_id: <?php echo (int)$locationFilter; ?>
+        }, function(resp) {
             if (resp && resp.voucher !== undefined) {
                 $('#voutcher_number').val(resp.voucher);
             }
         });
-        $.getJSON('ajax/payment_helpers.php', { action: 'cheque_next', bank_id: bankId, location_id: <?php echo (int)$locationFilter; ?> }, function(resp) {
+        $.getJSON('ajax/payment_helpers.php', {
+            action: 'cheque_next',
+            bank_id: bankId,
+            location_id: <?php echo (int)$locationFilter; ?>
+        }, function(resp) {
             if (resp && resp.cheque !== undefined) {
                 $('#cheque_number').val(resp.cheque);
             }

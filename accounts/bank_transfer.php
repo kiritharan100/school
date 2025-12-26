@@ -155,7 +155,7 @@ if ($locationFilter > 0) {
                 AND t.location_id = bt.location_id
                 AND t.tr_date BETWEEN '$fromDate' AND '$toDate'
           )
-        ORDER BY bt.id DESC
+        ORDER BY tr_date DESC, bt.id DESC
     ");
     while ($row = mysqli_fetch_assoc($tRes)) {
         $transfers[] = $row;
@@ -347,7 +347,8 @@ if ($locationFilter > 0) {
 <script>
 $(document).ready(function() {
     $('#transferTable').DataTable({
-        pageLength: 100
+        pageLength: 100,
+        order: [[2, 'desc'], [0, 'desc']]
     });
 
     function resetForm() {

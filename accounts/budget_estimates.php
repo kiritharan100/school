@@ -123,6 +123,7 @@ if ($openRes) {
                                 <?php endif; ?>
                             </select>
                             <button type="submit" class="btn btn-primary">Load</button>
+                            <button type="button" class="btn btn-secondary" id="editBudgetBtn">Edit</button>
                             <span class="badge badge-secondary ml-3" id="budgetStatus">Draft</span>
                         </form>
                     </div>
@@ -268,6 +269,7 @@ if ($openRes) {
     const year = <?php echo (int)$year; ?>;
     const locationId = <?php echo (int)$locationFilter; ?>;
     const expenses = <?php echo json_encode(array_map(function($e){ return ['ex_id'=>$e['ex_id']]; }, $expenses)); ?>;
+    const inputs = Array.from(document.querySelectorAll('.alloc-input, .opening-input'));
 
     function format(val) {
         return parseFloat(val || 0).toFixed(2);
@@ -385,6 +387,39 @@ if ($openRes) {
         .catch(() => alert('Network error while saving opening balance'));
     }
 
+    function setInputsReadonly(isReadonly) {
+        inputs.forEach(inp => {
+            inp.readOnly = isReadonly;
+            inp.classList.toggle('is-readonly', isReadonly);
+        });
+    }
+
+    const editBtn = document.getElementById('editBudgetBtn');
+    if (editBtn) {
+        editBtn.addEventListener('click', () => {
+            const confirmEdit = () => {
+                setInputsReadonly(false);
+                editBtn.disabled = true;
+            };
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Enable editing?',
+                    text: 'You are about to edit budget estimates for ' + year + '. Continue?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, enable edit'
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        confirmEdit();
+                    }
+                });
+            } else if (confirm('Enable editing for this budget year?')) {
+                confirmEdit();
+            }
+        });
+    }
+
     document.querySelectorAll('.alloc-input').forEach(inp => {
         inp.addEventListener('change', function() {
             const rid = this.getAttribute('data-rid');
@@ -404,6 +439,7 @@ if ($openRes) {
         });
     });
 
+    setInputsReadonly(true);
     recalcTotals();
 })();
 </script>

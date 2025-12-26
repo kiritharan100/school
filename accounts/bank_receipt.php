@@ -95,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             setcookie('transaction_date', $date, time() + 86400*180, '/');
             if ($bankId > 0) {
                 setcookie('receipt_bank', $bankId, time() + 86400*180, '/');
+                setcookie('receipt_filter_bank', $bankId, time() + 86400*180, '/');
             }
             // determine record_no
             $recordNo = 0;
@@ -400,7 +401,8 @@ setcookie('receipt_filter_bank', (int)$filterBank, time()+86400*180, '/');
 <script>
 $(document).ready(function() {
     $('#receiptTable').DataTable({
-        pageLength: 100
+        pageLength: 100,
+        order: [[2, 'desc'], [0, 'desc']]
     });
 
     function resetForm() {

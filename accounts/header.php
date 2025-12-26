@@ -280,16 +280,6 @@ $company_id = $_SESSION['customer'];
                         </a>
                     </li>
 
-                    <li class="<?php $url='budget_estimates.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-table"></i><span> Budget Estimates</span>
-                        </a>
-                    </li>
-                    <li class="<?php $url='manage_bank.php'; if($url == $current_url){echo "active";}?> treeview">
-                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-university"></i><span> Bank & Cash Accounts</span>
-                        </a>
-                    </li>
                     <li class="<?php $url='bank_payment.php'; if($url == $current_url){echo "active";}?> treeview">
                         <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
                             <i class="fa fa-sign-out"></i><span> Bank Payment</span>
@@ -313,13 +303,52 @@ $company_id = $_SESSION['customer'];
                     <li
                         class="<?php $url='manage_expenditure.php'; if($url == $current_url){echo "active";}?> treeview">
                         <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-credit-card"></i><span> Manage Expenditure</span>
+                            <i class="fa fa-credit-card"></i><span> Manage Expenditure Code</span>
                         </a>
                     </li>
                     <li class="<?php $url='manage_revinue.php'; if($url == $current_url){echo "active";}?> treeview">
                         <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
-                            <i class="fa fa-money"></i><span> Manage Revinue</span>
+                            <i class="fa fa-money"></i><span> Manage Revinue Code</span>
                         </a>
+                    </li>
+                    <li class="<?php $url='manage_bank.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa fa-university"></i><span> Bank & Cash Accounts</span>
+                        </a>
+                    </li>
+
+
+                    <li class="<?php $url='budget_estimates.php'; if($url == $current_url){echo "active";}?> treeview">
+                        <a class="waves-effect waves-dark" href="<?php echo $url; ?>">
+                            <i class="fa fa-table"></i><span> Budget Estimates</span>
+                        </a>
+                    </li>
+
+
+                    <li class="<?php
+            if(in_array($current_url , array( 
+               'oil_grn_master.php',  
+               'print_budget_estimates.php', 
+                'report_cash_book.php',
+             
+               
+                'Bob'))) {
+               echo "active ";
+              } ?>treeview"><a class="waves-effect waves-dark" href="#!"><i class="fa fa-file" aria-hidden="true"></i>
+                            <span>Reports</span><i class="icon-arrow-down"></i></a>
+                        <ul class="treeview-menu">
+                            <li class="<?php $url='report_cash_book.php'; if($url == $current_url){echo "active";}?>"><a
+                                    class="waves-effect waves-dark" href="<?php echo $url; ?>"><i
+                                        class="icon-arrow-right"></i> Cash Book</a></li>
+                            <li class="<?php $url='oil_grn_master.php'; if($url == $current_url){echo "active";}?>"><a
+                                    class="waves-effect waves-dark" href="<?php echo $url; ?>"><i
+                                        class="icon-arrow-right"></i> Oil Purchase</a></li>
+                            <li
+                                class="<?php $url='print_budget_estimates.php'; if($url == $current_url){echo "active";}?>">
+                                <a class="waves-effect waves-dark" href="<?php echo $url; ?>"><i
+                                        class="icon-arrow-right"></i> Budget Estimates</a>
+                            </li>
+                        </ul>
                     </li>
 
 
