@@ -181,12 +181,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Debit expense
                 mysqli_query($con, "
                     INSERT INTO transaction (location_id, transaction_id, transaction_type, voutcher_number, tr_date, bank_account_id, income_account, expenses_account, memo, debit, credit, supplier_id, status)
-                    VALUES ($locationFilter, $txnId, 'Payment', $voucherSql, $dateSql, 0, 0, $expId, $memoSql, $amount, 0, $supplierId, $status)
+                    VALUES ($locationFilter, $txnId, 'Payment', $voucherSql, $dateSql, 0, $incId, $expId, $memoSql, $amount, 0, $supplierId, $status)
                 ");
                 // Credit bank
                 mysqli_query($con, "
                     INSERT INTO transaction (location_id, transaction_id, transaction_type, voutcher_number, tr_date, bank_account_id, income_account, expenses_account, memo, debit, credit, supplier_id, status)
-                    VALUES ($locationFilter, $txnId, 'Payment', $voucherSql, $dateSql, $bankId, 0, 0, $memoSql, 0, $amount, $supplierId, $status)
+                    VALUES ($locationFilter, $txnId, 'Payment', $voucherSql, $dateSql, $bankId, $incId, $expId, $memoSql, 0, $amount, $supplierId, $status)
                 ");
                 $flash = ['type'=>'success','text'=>'Payment saved.'];
             } else {

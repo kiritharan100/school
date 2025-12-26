@@ -10,43 +10,40 @@ function require_date_if_opening(float $opening, string $date): bool {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Add or update
     if (isset($_POST['save_bank'])) {
-        $bankId  = isset($_POST['bank_id']) ? (int)$_POST['bank_id'] : 0;
-        $name    = mysqli_real_escape_string($con, trim($_POST['bank_name'] ?? ''));
-        $opening = isset($_POST['opening_balance']) ? (float)$_POST['opening_balance'] : 0;
-        $asAt    = mysqli_real_escape_string($con, trim($_POST['balance_as_it'] ?? ''));
-        $status  = isset($_POST['status']) ? (int)$_POST['status'] : 1;
+        $bankId     = isset($_POST['bank_id']) ? (int)$_POST['bank_id'] : 0;
+        $name       = mysqli_real_escape_string($con, trim($_POST['bank_name'] ?? ''));
+        $shortName  = mysqli_real_escape_string($con, trim($_POST['bank_short_name'] ?? ''));
+        $opening    = isset($_POST['opening_balance']) ? (float)$_POST['opening_balance'] : 0;
+        $asAt       = mysqli_real_escape_string($con, trim($_POST['balance_as_it'] ?? ''));
+        $status     = isset($_POST['status']) ? (int)$_POST['status'] : 1;
 
         if ($locationFilter === 0) {
             $flash = ['type' => 'danger', 'text' => 'Select a location first.'];
         } elseif ($name === '') {
             $flash = ['type' => 'danger', 'text' => 'Bank / cash account name is required.'];
+        } elseif ($shortName === '') {
+            $flash = ['type' => 'danger', 'text' => 'Bank short name is required.'];
         } elseif (!require_date_if_opening($opening, $asAt)) {
             $flash = ['type' => 'danger', 'text' => 'Please set Balance As At date when an opening balance is entered.'];
         } else {
-            // Check if transactions exist
-            $locked = false;
-            if ($bankId > 0) {
-                $txnRes = mysqli_query($con, "SELECT 1 FROM transaction WHERE bank_account_id = $bankId AND status = 1 LIMIT 1");
-                $locked = $txnRes && mysqli_num_rows($txnRes) > 0;
-            }
-
             if ($bankId > 0) {
                 $sql = "
                     UPDATE bank_account SET
                         bank_name = '$name',
+                        bank_short_name = '$shortName',
                         status = $status
-                        " . (!$locked ? ", opening_balance = $opening, balance_as_it = " . ($asAt !== '' ? "'$asAt'" : "NULL") : "") . "
+                        , opening_balance = $opening, balance_as_it = " . ($asAt !== '' ? "'$asAt'" : "NULL") . "
                     WHERE id = $bankId AND location_id = $locationFilter
                 ";
                 if (mysqli_query($con, $sql)) {
-                    $flash = ['type' => 'success', 'text' => 'Account updated successfully.' . ($locked ? ' (Opening balance/date locked due to transactions.)' : '')];
+                    $flash = ['type' => 'success', 'text' => 'Account updated successfully.'];
                 } else {
                     $flash = ['type' => 'danger', 'text' => 'Failed to update account.'];
                 }
             } else {
                 $sql = "
-                    INSERT INTO bank_account (location_id, bank_name, opening_balance, balance_as_it, status)
-                    VALUES ($locationFilter, '$name', $opening, " . ($asAt !== '' ? "'$asAt'" : "NULL") . ", $status)
+                    INSERT INTO bank_account (location_id, bank_name, bank_short_name, opening_balance, balance_as_it, status)
+                    VALUES ($locationFilter, '$name', '$shortName', $opening, " . ($asAt !== '' ? "'$asAt'" : "NULL") . ", $status)
                 ";
                 if (mysqli_query($con, $sql)) {
                     $flash = ['type' => 'success', 'text' => 'Account created successfully.'];
@@ -120,6 +117,7 @@ if ($locationFilter > 0) {
                                     <tr>
                                         <th>#</th>
                                         <th>Bank / Account</th>
+                                        <th>Short Name</th>
                                         <th>Opening Balance</th>
                                         <th>Balance As At</th>
                                         <th>Status</th>
@@ -131,6 +129,7 @@ if ($locationFilter > 0) {
                                         <tr>
                                             <td><?php echo (int)$acc['id']; ?></td>
                                             <td><?php echo htmlspecialchars($acc['bank_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($acc['bank_short_name']); ?></td>
                                             <td><?php echo number_format((float)$acc['opening_balance'], 2); ?></td>
                                             <td><?php echo $acc['balance_as_it']; ?></td>
                                             <td><?php echo ((int)$acc['status'] === 1) ? 'Active' : 'Inactive'; ?></td>
@@ -143,6 +142,7 @@ if ($locationFilter > 0) {
                                                         <a class="dropdown-item edit-bank" href="#"
                                                             data-id="<?php echo (int)$acc['id']; ?>"
                                                             data-name="<?php echo htmlspecialchars($acc['bank_name']); ?>"
+                                                            data-short="<?php echo htmlspecialchars($acc['bank_short_name']); ?>"
                                                             data-open="<?php echo htmlspecialchars($acc['opening_balance']); ?>"
                                                             data-date="<?php echo htmlspecialchars($acc['balance_as_it']); ?>"
                                                             data-status="<?php echo (int)$acc['status']; ?>"
@@ -187,6 +187,10 @@ if ($locationFilter > 0) {
                         <input type="text" class="form-control" name="bank_name" id="bank_name" required>
                     </div>
                     <div class="form-group">
+                        <label for="bank_short_name">Bank Short Name</label>
+                        <input type="text" class="form-control" name="bank_short_name" id="bank_short_name" maxlength="20" required>
+                    </div>
+                    <div class="form-group">
                         <label for="opening_balance">Opening Balance</label>
                         <input type="number" step="0.01" class="form-control" name="opening_balance" id="opening_balance" value="0.00">
                         <small class="text-muted">If you enter an opening balance, a Balance As At date is required.</small>
@@ -225,6 +229,7 @@ $(document).ready(function() {
     function resetForm() {
         $('#bank_id').val('');
         $('#bank_name').val('');
+        $('#bank_short_name').val('');
         $('#opening_balance').val('0.00').prop('disabled', false);
         $('#balance_as_it').val('').prop('disabled', false);
         $('#status').val('1');
@@ -239,16 +244,12 @@ $(document).ready(function() {
     $('.edit-bank').on('click', function(e) {
         e.preventDefault();
         resetForm();
-        var locked = parseInt($(this).data('locked'), 10) === 1;
         $('#bank_id').val($(this).data('id'));
         $('#bank_name').val($(this).data('name'));
+        $('#bank_short_name').val($(this).data('short'));
         $('#opening_balance').val($(this).data('open'));
         $('#balance_as_it').val($(this).data('date'));
         $('#status').val($(this).data('status'));
-        if (locked) {
-            $('#opening_balance').prop('disabled', true);
-            $('#balance_as_it').prop('disabled', true);
-        }
         $('#bankModalLabel').text('Edit Account');
         $('#bankModal').modal('show');
     });

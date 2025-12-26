@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Debit bank
                 mysqli_query($con, "
                     INSERT INTO transaction (location_id, transaction_id, transaction_type, voutcher_number, tr_date, bank_account_id, income_account, expenses_account, memo, debit, credit, supplier_id, status)
-                    VALUES ($locationFilter, $txnId, 'Receipt', '$voucher', $dateSql, $bankId, 0, 0, $memoSql, $amount, 0, 0, $status)
+                    VALUES ($locationFilter, $txnId, 'Receipt', '$voucher', $dateSql, $bankId, $incId, 0, $memoSql, $amount, 0, 0, $status)
                 ");
                 // Credit income
                 mysqli_query($con, "

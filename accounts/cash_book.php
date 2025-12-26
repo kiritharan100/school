@@ -24,11 +24,11 @@ $bankIdsAll = [];
 $bankNameById = [];
 $bankOpeningBase = [];
 if ($locationFilter > 0) {
-    $bankRes = mysqli_query($con, "SELECT id, bank_name, opening_balance FROM bank_account WHERE location_id = $locationFilter AND status = 1 ORDER BY bank_name ASC");
+    $bankRes = mysqli_query($con, "SELECT id, bank_name, bank_short_name, opening_balance FROM bank_account WHERE location_id = $locationFilter AND status = 1 ORDER BY bank_name ASC");
     while ($row = mysqli_fetch_assoc($bankRes)) {
         $banks[] = $row;
         $bankIdsAll[] = (int)$row['id'];
-        $bankNameById[(int)$row['id']] = $row['bank_name'];
+        $bankNameById[(int)$row['id']] = ($row['bank_short_name'] !== '' ? $row['bank_short_name'] : $row['bank_name']);
         $bankOpeningBase[(int)$row['id']] = (float)$row['opening_balance'];
     }
 }
@@ -195,19 +195,22 @@ foreach ($selectedBankIds as $bid) {
     $debitTotalsByBankWithBalances[$bid] = ($debitTotalsByBank[$bid] ?? 0) + ($openingDebitByBank[$bid] ?? 0) + ($closingDebitByBank[$bid] ?? 0);
     $creditTotalsByBankWithBalances[$bid] = ($creditTotalsByBank[$bid] ?? 0) + ($openingCreditByBank[$bid] ?? 0) + ($closingCreditByBank[$bid] ?? 0);
 }
-$debitTotalWithBalances  = $debitTotal + $openingDebitSum + $closingDebitSum;
-$creditTotalWithBalances = $creditTotal + $openingCreditSum + $closingCreditSum;
 $hasDebitRows = (count($debits) > 0) || ($openingDebitSum > 0) || ($closingDebitSum > 0);
 $hasCreditRows = (count($credits) > 0) || ($openingCreditSum > 0) || ($closingCreditSum > 0);
 ?>
-
+<style>
+table th,
+table td {
+    font-size: 12px;
+}
+</style>
 <div class="content-wrapper">
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12 p-0">
                 <div class="main-header">
                     <h4>Cash Book</h4>
-                    <p class="text-muted">Filters persist via cookies for this window.</p>
+
                 </div>
             </div>
         </div>
@@ -219,160 +222,214 @@ $hasCreditRows = (count($credits) > 0) || ($openingCreditSum > 0) || ($closingCr
                         <form id="filterForm" method="GET" class="form-inline" style="gap:10px;">
                             <div class="form-group">
                                 <label class="mr-2">From</label>
-                                <input type="date" class="form-control" id="start_date" name="start_date" value="<?php echo htmlspecialchars($startDate); ?>">
+                                <input type="date" class="form-control" id="start_date" name="start_date"
+                                    value="<?php echo htmlspecialchars($startDate); ?>">
                             </div>
                             <div class="form-group ml-3">
                                 <label class="mr-2">To</label>
-                                <input type="date" class="form-control" id="end_date" name="end_date" value="<?php echo htmlspecialchars($endDate); ?>">
+                                <input type="date" class="form-control" id="end_date" name="end_date"
+                                    value="<?php echo htmlspecialchars($endDate); ?>">
                             </div>
-                            <input type="hidden" id="banks" name="banks" value="<?php echo htmlspecialchars(implode(',', $selectedBankIds)); ?>">
-                            <button type="button" class="btn btn-info ml-3" data-toggle="modal" data-target="#bankModal">Select Bank(s)</button>
+                            <input type="hidden" id="banks" name="banks"
+                                value="<?php echo htmlspecialchars(implode(',', $selectedBankIds)); ?>">
+                            <button type="button" class="btn btn-info ml-3" data-toggle="modal"
+                                data-target="#bankModal">Select Bank(s)</button>
                             <button type="submit" class="btn btn-primary ml-2">Load</button>
                             <span class="ml-3">Selected banks:
                                 <?php if (!empty($selectedBankNames)): ?>
-                                    <?php foreach ($selectedBankNames as $bn): ?>
-                                        <span class="badge badge-success"><?php echo htmlspecialchars($bn); ?></span>
-                                    <?php endforeach; ?>
+                                <?php foreach ($selectedBankNames as $bn): ?>
+                                <span class="badge badge-success"><?php echo htmlspecialchars($bn); ?></span>
+                                <?php endforeach; ?>
                                 <?php else: ?>
-                                    <span class="badge badge-default">All</span>
+                                <span class="badge badge-default">All</span>
                                 <?php endif; ?>
                             </span>
                         </form>
                     </div>
                     <div class="card-block">
+                        <?php
+                        // Build row lists (including opening/closing)
+                        $debitRows = [];
+                        if ($openingDebitSum > 0) {
+                            $debitRows[] = ['type' => 'opening', 'date' => '', 'code' => '', 'desc' => 'Opening Balance', 'receipt' => '', 'banks' => $openingDebitByBank];
+                        }
+                        foreach ($debits as $d) {
+                            $bankData = [];
+                            foreach ($selectedBankIds as $bid) {
+                                $bankData[$bid] = ((int)$d['bank_account_id'] === (int)$bid) ? (float)$d['debit'] : 0;
+                            }
+                            $desc = $d['memo'];
+                            $receiptNo = $d['receipt_number'];
+                            if (strtolower($d['transaction_type']) === 'transfer') {
+                                $desc = 'Bank Deposit - ' . $d['memo'];
+                                $receiptNo = '';
+                            }
+                            $debitRows[] = [
+                                'type' => 'txn',
+                                'date' => $d['tr_date'],
+                                'code' => $d['revinue_code'],
+                                'desc' => $desc,
+                                'receipt' => $receiptNo,
+                                'banks' => $bankData
+                            ];
+                        }
+                        $creditRows = [];
+                        if ($openingCreditSum > 0) {
+                            $creditRows[] = ['type' => 'opening', 'date' => '', 'voucher' => '', 'desc' => 'Opening Balance', 'cheque' => '', 'income' => '', 'expense' => '', 'banks' => $openingCreditByBank];
+                        }
+                        foreach ($credits as $c) {
+                            $bankData = [];
+                            foreach ($selectedBankIds as $bid) {
+                                $bankData[$bid] = ((int)$c['bank_account_id'] === (int)$bid) ? (float)$c['credit'] : 0;
+                            }
+                            $desc = trim($c['supplier_name'] . ' ' . $c['memo']);
+                            $voucher = $c['voutcher_number'];
+                            $cheque = $c['cheque_number'];
+                            $incCode = $c['income_code'];
+                            $expCode = $c['ex_code'];
+                            if (strtolower($c['transaction_type']) === 'transfer') {
+                                $desc = 'Bank Deposit - ' . $c['memo'];
+                                $voucher = '';
+                                $cheque = '';
+                                $incCode = '';
+                                $expCode = '';
+                            }
+                            $creditRows[] = [
+                                'type' => 'txn',
+                                'date' => $c['tr_date'],
+                                'voucher' => $voucher,
+                                'desc' => $desc,
+                                'cheque' => $cheque,
+                                'income' => $incCode,
+                                'expense' => $expCode,
+                                'banks' => $bankData
+                            ];
+                        }
+                        $maxRows = max(count($debitRows), count($creditRows));
+                        ?>
+
                         <div class="row">
-                            <div class="col-md-6">
-                                <h5>Debit (Receipts / Transfers In)</h5>
-                                <table class="table table-bordered table-sm">
+                            <div class="col-12">
+                                <table class="table table-bordered table-sm cashbook-table">
                                     <thead>
                                         <tr>
-                                            <th style="width:95px;">Date</th>
-                                            <th style="width:80px;">Income Code</th>
+                                            <th colspan="<?php echo 4 + count($selectedBankIds); ?>" width='50%'
+                                                class="text-center">Receipt</th>
+                                            <th class="double-sep"></th>
+                                            <th colspan="<?php echo 6 + count($selectedBankIds); ?>" width='50%'
+                                                class="text-center">Payments</th>
+                                        </tr>
+                                        <tr>
+                                            <th style="width:70px !important;">Date</th>
+                                            <th style="width:40px;">Code</th>
                                             <th>Description</th>
-                                            <th style="width:90px;">Receipt #</th>
-                                            <th style="width:90px;">Voucher #</th>
+                                            <th style="width:60px;">Receipt #</th>
                                             <?php foreach ($selectedBankIds as $bid): ?>
-                                                <th style="width:110px;" class="text-right"><?php echo htmlspecialchars($bankNameById[$bid] ?? ('Bank '.$bid)); ?></th>
+                                            <th style="width:80px !important;" class="text-right">
+                                                <?php echo htmlspecialchars($bankNameById[$bid] ?? ('Bank '.$bid)); ?>
+                                            </th>
                                             <?php endforeach; ?>
-                                            <th style="width:120px;" class="text-right">Total</th>
+                                            <th class="double-sep"></th>
+                                            <th style="width:80px !important;">Date</th>
+                                            <th style="width:50px;">Vou No</th>
+                                            <th>Description</th>
+                                            <th style="width:60px;">Cheque #</th>
+                                            <th style="width:60px;">In Code</th>
+                                            <th style="width:60px ;">Ex Code</th>
+                                            <?php foreach ($selectedBankIds as $bid): ?>
+                                            <th style="width:80px !important;" class="text-right">
+                                                <?php echo htmlspecialchars($bankNameById[$bid] ?? ('Bank '.$bid)); ?>
+                                            </th>
+                                            <?php endforeach; ?>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php if ($openingDebitSum > 0): ?>
-                                            <tr class="table-info">
-                                                <td colspan="5"><strong>Opening Balance</strong></td>
-                                                <?php foreach ($selectedBankIds as $bid): ?>
-                                                    <td class="text-right"><?php echo number_format($openingDebitByBank[$bid] ?? 0, 2); ?></td>
-                                                <?php endforeach; ?>
-                                                <td class="text-right"><?php echo number_format($openingDebitSum, 2); ?></td>
-                                            </tr>
-                                        <?php endif; ?>
-                                        <?php if ($hasDebitRows && count($debits) > 0): ?>
-                                            <?php foreach ($debits as $d): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($d['tr_date']); ?></td>
-                                                    <td><?php echo htmlspecialchars($d['revinue_code']); ?></td>
-                                                    <td><?php echo htmlspecialchars($d['memo']); ?></td>
-                                                    <td><?php echo htmlspecialchars($d['receipt_number']); ?></td>
-                                                    <td><?php echo htmlspecialchars($d['voutcher_number']); ?></td>
-                                                    <?php foreach ($selectedBankIds as $bid): ?>
-                                                        <td class="text-right">
-                                                            <?php echo ((int)$d['bank_account_id'] === (int)$bid) ? number_format((float)$d['debit'], 2) : ''; ?>
-                                                        </td>
-                                                    <?php endforeach; ?>
-                                                    <td class="text-right"><?php echo number_format((float)$d['debit'], 2); ?></td>
-                                                </tr>
+                                        <?php if ($maxRows === 0): ?>
+                                        <tr>
+                                            <td colspan="<?php echo 4 + count($selectedBankIds) + 1 + 6 + count($selectedBankIds); ?>"
+                                                class="text-center text-muted">No records</td>
+                                        </tr>
+                                        <?php else: ?>
+                                        <?php for ($i=0; $i<$maxRows; $i++): 
+                                                $dr = $debitRows[$i] ?? null;
+                                                $cr = $creditRows[$i] ?? null;
+                                            ?>
+                                        <tr>
+                                            <td><?php echo $dr['date'] ?? ''; ?></td>
+                                            <td class="text-center"><?php echo $dr['code'] ?? ''; ?></td>
+                                            <td><?php echo $dr ? htmlspecialchars($dr['desc']) : ''; ?></td>
+                                            <td class="text-center"><?php echo $dr['receipt'] ?? ''; ?></td>
+                                            <?php foreach ($selectedBankIds as $bid): ?>
+                                            <td class="text-right">
+                                                <?php
+                                                        if ($dr && isset($dr['banks'][$bid]) && (float)$dr['banks'][$bid] != 0.0) {
+                                                            echo number_format((float)$dr['banks'][$bid], 2);
+                                                        }
+                                                        ?>
+                                            </td>
                                             <?php endforeach; ?>
+                                            <td class="double-sep"></td>
+                                            <td><?php echo $cr['date'] ?? ''; ?></td>
+                                            <td class="text-center"><?php echo $cr['voucher'] ?? ''; ?></td>
+                                            <td><?php echo $cr ? htmlspecialchars($cr['desc']) : ''; ?></td>
+                                            <td class="text-center"><?php echo $cr['cheque'] ?? ''; ?></td>
+                                            <td class="text-center"><?php echo $cr['income'] ?? ''; ?></td>
+                                            <td class="text-center"><?php echo $cr['expense'] ?? ''; ?></td>
+                                            <?php foreach ($selectedBankIds as $bid): ?>
+                                            <td class="text-right">
+                                                <?php
+                                                        if ($cr && isset($cr['banks'][$bid]) && (float)$cr['banks'][$bid] != 0.0) {
+                                                            echo number_format((float)$cr['banks'][$bid], 2);
+                                                        }
+                                                        ?>
+                                            </td>
+                                            <?php endforeach; ?>
+                                        </tr>
+                                        <?php endfor; ?>
+                                        <?php if ($closingDebitSum > 0 || $closingCreditSum > 0): ?>
+                                        <tr>
+                                            <td></td>
+                                            <td></td>
+                                            <td><strong><?php echo ($closingDebitSum > 0) ? 'Closing Balance' : ''; ?></strong>
+                                            </td>
+                                            <td></td>
+                                            <?php foreach ($selectedBankIds as $bid): ?>
+                                            <?php $val = $closingDebitByBank[$bid] ?? 0; ?>
+                                            <td class="text-right">
+                                                <?php echo $val != 0.0 ? number_format($val, 2) : ''; ?></td>
+                                            <?php endforeach; ?>
+                                            <td class="double-sep"></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td><strong><?php echo ($closingCreditSum > 0) ? 'Closing Balance' : ''; ?></strong>
+                                            </td>
+                                            <td></td>
+                                            <td class="text-center"></td>
+                                            <td class="text-center"></td>
+                                            <?php foreach ($selectedBankIds as $bid): ?>
+                                            <?php $val = $closingCreditByBank[$bid] ?? 0; ?>
+                                            <td class="text-right">
+                                                <?php echo $val != 0.0 ? number_format($val, 2) : '0.00'; ?></td>
+                                            <?php endforeach; ?>
+                                        </tr>
                                         <?php endif; ?>
-                                        <?php if ($closingDebitSum > 0): ?>
-                                            <tr class="table-info">
-                                                <td colspan="5"><strong>Closing Balance</strong></td>
-                                                <?php foreach ($selectedBankIds as $bid): ?>
-                                                    <td class="text-right"><?php echo number_format($closingDebitByBank[$bid] ?? 0, 2); ?></td>
-                                                <?php endforeach; ?>
-                                                <td class="text-right"><?php echo number_format($closingDebitSum, 2); ?></td>
-                                            </tr>
-                                        <?php endif; ?>
-                                        <?php if (!$hasDebitRows): ?>
-                                            <tr><td colspan="<?php echo 5 + count($selectedBankIds) + 1; ?>" class="text-center text-muted">No debit records</td></tr>
                                         <?php endif; ?>
                                     </tbody>
                                     <tfoot>
                                         <tr class="font-weight-bold">
-                                            <td colspan="5" class="text-right">Total Debit</td>
+                                            <td colspan="4" class="text-right">Total Debit</td>
                                             <?php foreach ($selectedBankIds as $bid): ?>
-                                                <td class="text-right"><?php echo number_format($debitTotalsByBankWithBalances[$bid] ?? 0, 2); ?></td>
+                                            <td class="text-right">
+                                                <?php echo number_format($debitTotalsByBankWithBalances[$bid] ?? 0, 2); ?>
+                                            </td>
                                             <?php endforeach; ?>
-                                            <td class="text-right"><?php echo number_format($debitTotalWithBalances, 2); ?></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                            <div class="col-md-6">
-                                <h5>Credit (Payments / Transfers Out)</h5>
-                                <table class="table table-bordered table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th style="width:95px;">Date</th>
-                                            <th style="width:90px;">Voucher #</th>
-                                            <th>Description</th>
-                                            <th style="width:90px;">Cheque #</th>
-                                            <th style="width:90px;">Income Code</th>
-                                            <th style="width:90px;">Expense Code</th>
-                                            <?php foreach ($selectedBankIds as $bid): ?>
-                                                <th style="width:110px;" class="text-right"><?php echo htmlspecialchars($bankNameById[$bid] ?? ('Bank '.$bid)); ?></th>
-                                            <?php endforeach; ?>
-                                            <th style="width:120px;" class="text-right">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php if ($openingCreditSum > 0): ?>
-                                            <tr class="table-info">
-                                                <td colspan="6"><strong>Opening Balance</strong></td>
-                                                <?php foreach ($selectedBankIds as $bid): ?>
-                                                    <td class="text-right"><?php echo number_format($openingCreditByBank[$bid] ?? 0, 2); ?></td>
-                                                <?php endforeach; ?>
-                                                <td class="text-right"><?php echo number_format($openingCreditSum, 2); ?></td>
-                                            </tr>
-                                        <?php endif; ?>
-                                        <?php if ($hasCreditRows && count($credits) > 0): ?>
-                                            <?php foreach ($credits as $c): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($c['tr_date']); ?></td>
-                                                    <td><?php echo htmlspecialchars($c['voutcher_number']); ?></td>
-                                                    <td><?php echo htmlspecialchars(trim($c['supplier_name'] . ' ' . $c['memo'])); ?></td>
-                                                    <td><?php echo htmlspecialchars($c['cheque_number']); ?></td>
-                                                    <td><?php echo htmlspecialchars($c['income_code']); ?></td>
-                                                    <td><?php echo htmlspecialchars($c['ex_code']); ?></td>
-                                                    <?php foreach ($selectedBankIds as $bid): ?>
-                                                        <td class="text-right">
-                                                            <?php echo ((int)$c['bank_account_id'] === (int)$bid) ? number_format((float)$c['credit'], 2) : ''; ?>
-                                                        </td>
-                                                    <?php endforeach; ?>
-                                                    <td class="text-right"><?php echo number_format((float)$c['credit'], 2); ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        <?php endif; ?>
-                                        <?php if ($closingCreditSum > 0): ?>
-                                            <tr class="table-info">
-                                                <td colspan="6"><strong>Closing Balance</strong></td>
-                                                <?php foreach ($selectedBankIds as $bid): ?>
-                                                    <td class="text-right"><?php echo number_format($closingCreditByBank[$bid] ?? 0, 2); ?></td>
-                                                <?php endforeach; ?>
-                                                <td class="text-right"><?php echo number_format($closingCreditSum, 2); ?></td>
-                                            </tr>
-                                        <?php endif; ?>
-                                        <?php if (!$hasCreditRows): ?>
-                                            <tr><td colspan="<?php echo 6 + count($selectedBankIds) + 1; ?>" class="text-center text-muted">No credit records</td></tr>
-                                        <?php endif; ?>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr class="font-weight-bold">
+                                            <td class="double-sep"></td>
                                             <td colspan="6" class="text-right">Total Credit</td>
                                             <?php foreach ($selectedBankIds as $bid): ?>
-                                                <td class="text-right"><?php echo number_format($creditTotalsByBankWithBalances[$bid] ?? 0, 2); ?></td>
+                                            <td class="text-right">
+                                                <?php echo number_format($creditTotalsByBankWithBalances[$bid] ?? 0, 2); ?>
+                                            </td>
                                             <?php endforeach; ?>
-                                            <td class="text-right"><?php echo number_format($creditTotalWithBalances, 2); ?></td>
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -387,40 +444,41 @@ $hasCreditRows = (count($credits) > 0) || ($openingCreditSum > 0) || ($closingCr
 
 <!-- Bank selection modal -->
 <div class="modal fade" id="bankModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Select Bank Accounts</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <table class="table table-sm table-bordered">
-            <thead>
-                <tr>
-                    <th style="width:40px;"><input type="checkbox" id="bankCheckAll"></th>
-                    <th>Bank Name</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($banks as $b): ?>
-                <?php $checked = in_array((int)$b['id'], $selectedBankIds, true) ? 'checked' : ''; ?>
-                <tr>
-                    <td><input type="checkbox" class="bank-check" value="<?php echo (int)$b['id']; ?>" <?php echo $checked; ?>></td>
-                    <td><?php echo htmlspecialchars($b['bank_name']); ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-danger" id="clearBanks">Clear</button>
-        <button type="button" class="btn btn-primary" id="applyBanks">Apply</button>
-      </div>
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Bank Accounts</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;"><input type="checkbox" id="bankCheckAll"></th>
+                            <th>Bank Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($banks as $b): ?>
+                        <?php $checked = in_array((int)$b['id'], $selectedBankIds, true) ? 'checked' : ''; ?>
+                        <tr>
+                            <td><input type="checkbox" class="bank-check" value="<?php echo (int)$b['id']; ?>"
+                                    <?php echo $checked; ?>></td>
+                            <td><?php echo htmlspecialchars($b['bank_name']); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" id="clearBanks">Clear</button>
+                <button type="button" class="btn btn-primary" id="applyBanks">Apply</button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <?php include 'footer.php'; ?>
@@ -429,7 +487,7 @@ $hasCreditRows = (count($credits) > 0) || ($openingCreditSum > 0) || ($closingCr
 <script>
 (function() {
     function setCookie(name, value) {
-        document.cookie = name + "=" + encodeURIComponent(value) + ";path=/;max-age=" + (60*60*24*180);
+        document.cookie = name + "=" + encodeURIComponent(value) + ";path=/;max-age=" + (60 * 60 * 24 * 180);
     }
 
     $('#filterForm').on('submit', function() {
@@ -457,3 +515,26 @@ $hasCreditRows = (count($credits) > 0) || ($openingCreditSum > 0) || ($closingCr
     });
 })();
 </script>
+
+<style>
+.cashbook-table .double-sep {
+    /* border-left: double 3px #000 !important; */
+    /* border-right: double 3px #000 !important; */
+    width: 4px;
+    padding: 0;
+}
+
+.cashbook-table tbody tr.table-info td {
+    background: #f0f8ff;
+}
+
+.cashbook-table th,
+.cashbook-table td {
+    border: 1px solid #000 !important;
+}
+
+.cashbook-table th {
+    text-align: center;
+    vertical-align: middle;
+}
+</style>
