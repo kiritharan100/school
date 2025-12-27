@@ -353,6 +353,16 @@ $company_id = $_SESSION['customer'];
                                 <a class="waves-effect waves-dark" href="<?php echo $url; ?>"><i
                                         class="icon-arrow-right"></i> Revenue / Expenditure</a>
                             </li>
+                            <li
+                                class="<?php $url='report_revinue_only.php'; if($url == $current_url){echo "active";}?>">
+                                <a class="waves-effect waves-dark" href="<?php echo $url; ?>"><i
+                                        class="icon-arrow-right"></i> Revenue (Receipts)</a>
+                            </li>
+                            <li
+                                class="<?php $url='report_expenditure_report.php'; if($url == $current_url){echo "active";}?>">
+                                <a class="waves-effect waves-dark" href="<?php echo $url; ?>"><i
+                                        class="icon-arrow-right"></i> Expenditure (Payments)</a>
+                            </li>
                         </ul>
                     </li>
 

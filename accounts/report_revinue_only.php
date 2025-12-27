@@ -105,11 +105,9 @@ if ($selectedIncomeRow === null) {
 $summary = [
     'estimate' => 0.0,
     'collection' => 0.0,
-    'spend' => 0.0,
 ];
 $rows = [];
 $totalDebit = 0.0;
-$totalCredit = 0.0;
 $endingBalance = 0.0;
 
 if ($locationFilter > 0 && $incomeId > 0) {
@@ -139,60 +137,43 @@ if ($locationFilter > 0 && $incomeId > 0) {
     ");
     $collection = $colRes ? (float)(mysqli_fetch_assoc($colRes)['total_col'] ?? 0) : 0.0;
 
-    $spendRes = mysqli_query($con, "
-        SELECT COALESCE(SUM(credit),0) AS total_pay
-        FROM transaction
-        WHERE location_id = $locationFilter
-          AND status = 1
-          AND income_account = $incomeId
-          AND transaction_type = 'Payment'
-          AND YEAR(tr_date) = $year
-    ");
-    $spend = $spendRes ? (float)(mysqli_fetch_assoc($spendRes)['total_pay'] ?? 0) : 0.0;
-
     $summary['estimate'] = $alloc + $opening;
     $summary['collection'] = $collection + $opening;
-    $summary['spend'] = $spend;
 
-    // Detail rows (credit entries only)
+    // Detail rows (receipts only)
     $txnSql = "
         SELECT t.id, t.tr_date, t.transaction_type, t.voutcher_number, t.memo, t.credit, t.supplier_id,
                sup.supplier_name,
-               bp.voutcher_number AS pay_voucher, bp.cheque_number AS pay_cheque,
                br.receipt_number AS receipt_no
         FROM transaction t
         LEFT JOIN manage_supplier sup ON sup.sup_id = t.supplier_id
-        LEFT JOIN bank_payment bp ON bp.record_number = t.transaction_id AND bp.location_id = t.location_id
         LEFT JOIN bank_receipt br ON br.record_no = t.transaction_id AND br.location_id = t.location_id
         WHERE t.location_id = $locationFilter
           AND t.status = 1
           AND t.income_account = $incomeId
-          AND t.transaction_type IN ('Receipt','Payment')
+          AND t.transaction_type = 'Receipt'
           AND t.credit > 0
           AND YEAR(t.tr_date) = $year
-        ORDER BY t.tr_date ASC, (CASE WHEN t.transaction_type = 'Receipt' THEN t.credit ELSE 0 END) DESC, t.id ASC
+        ORDER BY t.tr_date ASC, t.credit DESC, t.id ASC
     ";
     $txnRes = mysqli_query($con, $txnSql);
     $balance = $opening;
     $sn = 1;
-    // Opening balance row always shown
+    // Opening row always
     $rows[] = [
         'sn' => $sn++,
         'date' => $year.'-01-01',
-        'ref' => 'Opening Balance',
-        'desc' => 'Opening balance ',
+        'ref' => 'Balance',
+        'desc' => 'Opening balance',
         'debit' => $opening,
-        'credit' => 0.0,
         'balance' => $balance,
     ];
     $totalDebit += $opening;
     if ($txnRes) {
         while ($row = mysqli_fetch_assoc($txnRes)) {
             $amount = (float)$row['credit'];
-            $isReceipt = $row['transaction_type'] === 'Receipt';
-            $debit = $isReceipt ? $amount : 0.0;
-            $credit = $isReceipt ? 0.0 : $amount;
-            $balance += ($debit - $credit);
+            $debit = $amount;
+            $balance += $debit;
 
             $descParts = [];
             if (!empty($row['supplier_name'])) {
@@ -208,20 +189,7 @@ if ($locationFilter > 0 && $incomeId > 0) {
                 $desc = rtrim($desc, '.') . '.';
             }
 
-            if ($isReceipt) {
-                $ref = $row['receipt_no'] ?? '';
-            } else {
-                $voucherVal = $row['pay_voucher'] ?? $row['voutcher_number'] ?? '';
-                $chequeVal = $row['pay_cheque'] ?? '';
-                $refParts = [];
-                if ($voucherVal !== '') {
-                    $refParts[] = '' . $voucherVal;
-                }
-                if ($chequeVal !== '') {
-                    $refParts[] = '' . $chequeVal;
-                }
-                $ref = implode(' | ', $refParts);
-            }
+            $ref = $row['receipt_no'] ?? '';
 
             $rows[] = [
                 'sn' => $sn++,
@@ -229,11 +197,9 @@ if ($locationFilter > 0 && $incomeId > 0) {
                 'ref' => $ref,
                 'desc' => $desc,
                 'debit' => $debit,
-                'credit' => $credit,
                 'balance' => $balance,
             ];
             $totalDebit += $debit;
-            $totalCredit += $credit;
         }
         $endingBalance = $balance;
     }
@@ -245,8 +211,8 @@ if ($locationFilter > 0 && $incomeId > 0) {
         <div class="row">
             <div class="col-sm-12 p-0">
                 <div class="main-header">
-                    <h4>Revenue / Expenditure Report</h4>
-                    <small>Income account ledger with yearly summary</small>
+                    <h4>Revenue Report</h4>
+                    <small>Income receipts only</small>
                 </div>
             </div>
         </div>
@@ -282,8 +248,8 @@ if ($locationFilter > 0 && $incomeId > 0) {
                             </select>
 
                             <button type="submit" class="btn btn-primary ml-3">Generate Report</button>
-                            <button type="button" class="btn btn-secondary ml-2" id="printReportBtn"
-                                onclick="printRevenueReport()">Print</button>
+                            <button type="button" class="btn btn-secondary ml-2" id="printRevenueOnlyBtn"
+                                onclick="printRevenueOnly()">Print</button>
                         </form>
                     </div>
                     <div class="card-block">
@@ -291,7 +257,6 @@ if ($locationFilter > 0 && $incomeId > 0) {
                             <div class="row m-b-15">
                                 <div class="col-12 text-center">
                                     <h4><?php echo htmlspecialchars($client_name); ?></h4>
-                                    <h4>Income and Expenses </h4>
                                 </div>
                             </div>
                             <div class="row m-b-15">
@@ -308,8 +273,6 @@ if ($locationFilter > 0 && $incomeId > 0) {
                                         &nbsp; | &nbsp;
                                         <strong>Total Collection:</strong>
                                         <?php echo number_format($summary['collection'], 2); ?>
-                                        &nbsp; | &nbsp;
-                                        <strong>Total Spend:</strong> <?php echo number_format($summary['spend'], 2); ?>
                                     </div>
                                 </div>
                             </div>
@@ -323,7 +286,6 @@ if ($locationFilter > 0 && $incomeId > 0) {
                                             <th style="width:200px;">Reference</th>
                                             <th>Description</th>
                                             <th style="width:140px;" class="text-right">Debit</th>
-                                            <th style="width:140px;" class="text-right">Credit</th>
                                             <th style="width:160px;" class="text-right">Balance</th>
                                         </tr>
                                     </thead>
@@ -341,7 +303,6 @@ if ($locationFilter > 0 && $incomeId > 0) {
                                             <td><?php echo htmlspecialchars($r['ref']); ?></td>
                                             <td><?php echo htmlspecialchars($r['desc']); ?></td>
                                             <td class="text-right"><?php echo formatZeroBlank($r['debit']); ?></td>
-                                            <td class="text-right"><?php echo formatZeroBlank($r['credit']); ?></td>
                                             <td class="text-right"><?php echo number_format($r['balance'], 2); ?></td>
                                         </tr>
                                         <?php endforeach; ?>
@@ -351,7 +312,6 @@ if ($locationFilter > 0 && $incomeId > 0) {
                                         <tr class="font-weight-bold">
                                             <td colspan="4" class="text-right">Totals</td>
                                             <td class="text-right"><?php echo number_format($totalDebit, 2); ?></td>
-                                            <td class="text-right"><?php echo number_format($totalCredit, 2); ?></td>
                                             <td class="text-right"><?php echo number_format($endingBalance, 2); ?></td>
                                         </tr>
                                     </tfoot>
@@ -373,12 +333,12 @@ $(function() {
     });
 });
 
-function printRevenueReport() {
+function printRevenueOnly() {
     var yearEl = document.getElementById('year');
     var incomeEl = document.getElementById('income_account');
     var year = yearEl ? yearEl.value : '';
     var income = incomeEl ? incomeEl.value : '';
-    var url = 'report_revinue_expenditure_print.php?year=' + encodeURIComponent(year) + '&income_account=' +
+    var url = 'report_revinue_only_print.php?year=' + encodeURIComponent(year) + '&income_account=' +
         encodeURIComponent(income);
     window.open(url, '_blank');
 }
