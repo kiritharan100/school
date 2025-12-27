@@ -348,6 +348,11 @@ $company_id = $_SESSION['customer'];
                                 <a class="waves-effect waves-dark" href="<?php echo $url; ?>"><i
                                         class="icon-arrow-right"></i> Budget Estimates</a>
                             </li>
+                            <li
+                                class="<?php $url='report_revinue_expenditure.php'; if($url == $current_url){echo "active";}?>">
+                                <a class="waves-effect waves-dark" href="<?php echo $url; ?>"><i
+                                        class="icon-arrow-right"></i> Revenue / Expenditure</a>
+                            </li>
                         </ul>
                     </li>
 
