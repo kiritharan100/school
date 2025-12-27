@@ -54,14 +54,13 @@
                         </a>
 
 
-
-
+                        <?php if ($_SESSION['user_id'] == 1) { ?>
                         <a href='admin'>
                             <div class="col-sm-3 col-xs-12 waves-effect waves-light">
                                 <div class="grid-material bg-danger" style="opacity: .9;"><img src='img/admin1.png'
                                         width='100px;'><br> ADMIN</div>
                             </div>
-                        </a>
+                        </a> <?php } ?>
 
 
 

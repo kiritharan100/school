@@ -3,11 +3,12 @@
 // ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-
    require('../db.php');
    require('../auth.php');
   
-   
+   if ($_SESSION['user_id'] <> 1){
+    exit;
+}
    $current_url = substr($_SERVER["SCRIPT_NAME"],strrpos($_SERVER["SCRIPT_NAME"],"/")+1);  
    if(isset($_POST['selected_client'])){
       $selected_client = $_POST['selected_client'];

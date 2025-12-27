@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['LoginSubmit'])) {
             $_SESSION['user_id'] = $user_id;
             $_SESSION['customer'] = $row['customer'];
             $_SESSION['i_name'] = $row['i_name'];
-            $_SESSION['app_name'] = 'IRCMS';
+            $_SESSION['app_name'] = 'School Accounts System';
             $_SESSION['company_name'] = $entity;
             $_SESSION['last_token'] = $token;
             $_SESSION['company'] = $entity;
@@ -206,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['LoginSubmit'])) {
                 setcookie('client_cook', $last_client, time() + (86400 * 180), '/');
             }
             $client_stmt->close();
-            echo "<script>window.location.href = 'index.php';</script>";
+            echo "<script>window.location.href = 'accounts/index.php';</script>";
             exit;
         } else {
             $fail_stmt = $con->prepare("INSERT INTO login_attempts (ip_address, attempt_time, try_for) VALUES (?, NOW(), 'login')");
@@ -282,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['LoginSubmit'])) {
 
             <h5 class="text-center text-success mb-3">
 
-                <?php echo isset($entity) ? htmlspecialchars($entity) : 'Raja Bake House<br> Trincomalee'; ?>
+                <?php echo isset($entity) ? htmlspecialchars($entity) : 'School Accounting <br> System'; ?>
             </h5>
             <form method="POST" action="">
                 <div class="mb-3">
